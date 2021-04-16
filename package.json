@@ -11,7 +11,8 @@
         "test": "jest -c ./jest.config.js --rootDir . -i",
         "test-coverage": "jest -c ./jest.config.js --rootDir . -i --collect-coverage --collectCoverageFrom=./src/app/**/*.ts ",
         "doc": "typedoc src/ --exclude src/index.ts --exclude src/tests --out dist/docs --theme default",
-        "start": "webpack serve"
+        "start": "webpack serve",
+        "upgrade-youwol": "yarn upgrade @youwol/cdn-client @youwol/flux-core @youwol/flux-view @youwol/fv-button @youwol/fv-group @youwol/fv-input @youwol/fv-tabs @youwol/fv-tree"
     },
     "license": "MIT",
     "dependencies": {

@@ -17,7 +17,7 @@ export function getActions(asset: Asset){
         { state: presentationBttnState, 
           contentView: () => ({innerText:'Presentation'})
         })
-    presentationBttnState.click$.subscribe(() => window.location.href = `/ui/flux-ui-runner/?id=${asset.rawId}`)
+    presentationBttnState.click$.subscribe(() => window.location.href = `/ui/flux-runner/?id=${asset.rawId}`)
 
     return {
         class: "w-100 d-flex flex-wrap",

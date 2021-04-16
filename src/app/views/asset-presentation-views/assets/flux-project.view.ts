@@ -28,7 +28,7 @@ export function getActions(asset: Asset){
     let runBttn = new Button.View({ 
         state:runBttnState, class: classes,
         contentView: () => ({innerText:'run'})} as any)
-    runBttnState.click$.subscribe(() => window.location.href = `/ui/flux-ui-runner/?id=${asset.rawId}`)
+    runBttnState.click$.subscribe(() => window.location.href = `/ui/flux-runner/?id=${asset.rawId}`)
 
     let constructBttnState = new Button.State()
     let constructBttn = new Button.View({

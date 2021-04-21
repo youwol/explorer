@@ -5,8 +5,7 @@ let cdn = window['@youwol/cdn-client']
 await cdn.fetchStyleSheets([
         "bootstrap#4.4.1~bootstrap.min.css",
         "fontawesome#5.12.1~css/all.min.css",
-        "@youwol/fv-widgets#0.0.3~dist/assets/styles/style.youwol.css",
-        "grapes#0.16.2~css/grapes.min.css"
+        "@youwol/fv-widgets#0.0.3~dist/assets/styles/style.youwol.css"
     ])
 
 await cdn.fetchBundles(

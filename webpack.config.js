@@ -54,8 +54,8 @@ module.exports = {
         '@youwol/fv-tree':"window['@youwol/fv-tree']",
         '@youwol/fv-input':"window['@youwol/fv-input']",
         '@youwol/fv-button':"window['@youwol/fv-button']",    
-        '@youwol/fv-tabs':"window['@youwol/fv-tabs']",    
-        "lodash": "_",                
+        '@youwol/fv-tabs':"window['@youwol/fv-tabs']",      
+        '@youwol/cdn-client':"window['@youwol/cdn-client']"
     }
     ],
     module: {

@@ -3,7 +3,7 @@ import { AssetTabView } from "./data"
 //import * as d3 from 'd3'
 import { AssetWithAccessInfo } from '../../data'
 import { AppState } from '../../app.state'
-import { VirtualDOM } from '@youwol/flux-view'
+import { VirtualDOM, HTMLElement$ } from '@youwol/flux-view'
 
 
 export class UsageTabView extends AssetTabView {
@@ -29,8 +29,8 @@ export class UsageTabView extends AssetTabView {
                         {
                             id: 'graph_statistics_container',
                             class: 'flex-grow-1 fv-bg-background',
-                            connectedCallback: (elem) => {
-                                elem.subscriptions.push(
+                            connectedCallback: (elem: HTMLElement$) => {
+                                elem.ownSubscriptions(
                                     AssetsBrowserClient.statistics$(this.asset.assetId, 10).subscribe(
                                         ({ accessHistory: { bins, binSize } }) => {
                                             if (bins.length > 0)

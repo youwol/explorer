@@ -4,3 +4,7 @@ dist/
 coverage/
 junit.xml
 src/auto_generated.ts
+chart/
+deploy
+nginx.conf
+Dockerfile

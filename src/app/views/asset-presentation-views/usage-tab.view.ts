@@ -1,6 +1,6 @@
 import { AssetsBrowserClient } from '../../assets-browser.client'
 import { AssetTabView } from "./data"
-import * as d3 from 'd3'
+//import * as d3 from 'd3'
 import { AssetWithAccessInfo } from '../../data'
 import { AppState } from '../../app.state'
 import { VirtualDOM } from '@youwol/flux-view'
@@ -49,7 +49,7 @@ export class UsageTabView extends AssetTabView {
 
     renderGraph(data: Array<{ date: string, count: number }>, binSize) {
 
-        let padding = 30
+        /*let padding = 30
         let svg = d3.select("#graph_statistics_container")
             .append("svg:svg").attr("class", "w-100 h-100")
 
@@ -72,6 +72,7 @@ export class UsageTabView extends AssetTabView {
             .attr("height", d => y(0) - y(d.count))
         svg.append("g").call(xAxis);
         svg.append("g").call(yAxis);
+        */
     }
 
 }

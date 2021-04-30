@@ -1,4 +1,6 @@
 
+require('./style.css');
+
 let state = require('./app.state')
 let view = require('./app.view')
 let banner = require('./views/top-menu-bar.view')

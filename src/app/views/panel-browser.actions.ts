@@ -24,7 +24,7 @@ let ALL_ACTIONS = {
             if (node instanceof Nodes.ItemNode){
                 return !node.borrowed
             }
-            return node instanceof Nodes.FolderNode
+            return node instanceof Nodes.FolderNode || node instanceof Nodes.DriveNode
         }            
     }),
     newFolder: (state: AppState, node: Nodes.FolderNode | Nodes.DriveNode) => ({

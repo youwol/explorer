@@ -1,14 +1,14 @@
 import { BehaviorSubject, timer } from "rxjs";
-import { distinctUntilChanged,filter, map, mergeMap, skip, takeUntil } from "rxjs/operators";
+import { distinctUntilChanged, filter, map, mergeMap, skip, takeUntil } from "rxjs/operators";
 import { Asset, Favorite, Nodes, UploadStep } from "../data";
 import { Action, getActions$ } from './panel-browser.actions';
 import { AssetsBrowserClient } from '../assets-browser.client';
 import { AppState } from '../app.state';
 import { BrowserState } from './panel-browser.state';
 
-import {ExpandableGroup} from '@youwol/fv-group'
-import {render, attr$, child$, VirtualDOM} from '@youwol/flux-view'
-import {ImmutableTree} from '@youwol/fv-tree'
+import { ExpandableGroup } from '@youwol/fv-group'
+import { render, attr$, child$, VirtualDOM } from '@youwol/flux-view'
+import { ImmutableTree } from '@youwol/fv-tree'
 
 
 export function createYouwolBrowserPanel(appState: AppState) {
@@ -16,9 +16,9 @@ export function createYouwolBrowserPanel(appState: AppState) {
     let state = new ExpandableGroup.State('EXPLORER', true)
     let view = new ExpandableGroup.View({
         state,
-        headerView:headerViewBrowserGroup,
+        headerView: headerViewBrowserGroup,
         contentView: () => createBrowserView(appState),
-        className:"h-100 d-flex flex-column"
+        className: "h-100 d-flex flex-column"
     } as any)
     return view
 }
@@ -27,34 +27,34 @@ export function createYouwolBrowserPanel(appState: AppState) {
 export function createBrowserView(appState: AppState) {
 
     let tree = new ImmutableTree.View<Nodes.BrowserNode>({
-        state: appState, 
+        state: appState,
         id: 'browser-tree-view',
         headerView: headerViewTree,
-        class:'fv-text-primary',
-        options:{
-            stepPadding:20
+        class: 'fv-text-primary',
+        options: {
+            stepPadding: 20
         },
         connectedCallback: (elem) => {
 
-            let sub0 = appState.selectedNode$.pipe( 
-                filter( (node) => node instanceof Nodes.FolderNode)
+            let sub0 = appState.selectedNode$.pipe(
+                filter((node) => node instanceof Nodes.FolderNode)
             ).subscribe(
-                (node: Nodes.FolderNode) =>{
-                    appState.selectedFolder$.next(node) 
+                (node: Nodes.FolderNode) => {
+                    appState.selectedFolder$.next(node)
                 }
             )
             let sub1 = appState.selectedNode$.pipe(
-                filter( (node) => node instanceof Nodes.DriveNode)
+                filter((node) => node instanceof Nodes.DriveNode)
             ).subscribe(
-                (node: Nodes.DriveNode) =>{
-                    appState.selectedDrive$.next(node) 
+                (node: Nodes.DriveNode) => {
+                    appState.selectedDrive$.next(node)
                 }
             )
             let sub2 = tree.contextMenu$.pipe(
-                mergeMap( ({data, event}) =>  
-                    getActions$(appState, data.node).pipe(map( actions => ({actions,event}) ))
+                mergeMap(({ data, event }) =>
+                    getActions$(appState, data.node).pipe(map(actions => ({ actions, event })))
                 )
-            ).subscribe(({actions, event}) => {
+            ).subscribe(({ actions, event }) => {
                 console.log(event, actions)
                 contextMenuView(actions, event)
             })
@@ -69,10 +69,10 @@ export function createBrowserView(appState: AppState) {
                     appState.selectedAsset$.next(asset)
                 }
             )
-            elem.subscriptions.push( sub0, sub1, sub2, sub3)
+            elem.subscriptions.push(sub0, sub1, sub2, sub3)
         }
-        
-    }as any)
+
+    } as any)
 
     appState['view'] = tree
 
@@ -80,7 +80,7 @@ export function createBrowserView(appState: AppState) {
         class: 'h-100 overflow-auto d-flex justify-content-between',
         children: [
             tree,
-            favoritesBar(appState, tree )
+            favoritesBar(appState, tree)
         ]
     }
 }
@@ -88,48 +88,48 @@ export function createBrowserView(appState: AppState) {
 export function favoritesBar(appState: AppState, tree: ImmutableTree.View<Nodes.BrowserNode>) {
 
     let favorites$ = appState.favorites$.pipe(
-        distinctUntilChanged( (prev,cur) => prev.reduce( (a,b)=> a+b.assetId, "") == cur.reduce( (a,b)=> a+b.assetId, ""))
+        distinctUntilChanged((prev, cur) => prev.reduce((a, b) => a + b.assetId, "") == cur.reduce((a, b) => a + b.assetId, ""))
     )
     return {
-        class:"favorite-bar d-flex flex-column",
+        class: "favorite-bar d-flex flex-column",
         style: attr$(
             appState.favorites$,
             (favorites) => {
-                return favorites.length>0 
-                    ? { width: "100px", height: "fit-content"/*, 'position':'absolute', top:'0px', right:'0'*/}
-                    : { width: "25px", height: "fit-content"/*,'position':'absolute', top:'0px', right:'0' */}
+                return favorites.length > 0
+                    ? { width: "100px", height: "fit-content"/*, 'position':'absolute', top:'0px', right:'0'*/ }
+                    : { width: "25px", height: "fit-content"/*,'position':'absolute', top:'0px', right:'0' */ }
             }
         ),
-        onmouseenter: () => { appState.expandFavoritesBar()},
+        onmouseenter: () => { appState.expandFavoritesBar() },
         onmouseleave: () => {
 
             let timeout = 500
-            let reflow$ = appState.favorites$.pipe(  
+            let reflow$ = appState.favorites$.pipe(
                 skip(1),
                 takeUntil(timer(timeout))
             )
             timer(timeout).pipe(
-                takeUntil( reflow$ )
-            ).subscribe( () => appState.collapseFavoritesBar())
+                takeUntil(reflow$)
+            ).subscribe(() => appState.collapseFavoritesBar())
         },
         children: [
             {
-                class :'py-2 fv-text-focus  text-center px-2',
-                children:[
+                class: 'py-2 fv-text-focus  text-center px-2',
+                children: [
                     {
                         tag: 'i',
-                        class: 'fas fa-star py-1 float-right' 
+                        class: 'fas fa-star py-1 float-right'
                     }
                 ],
             },
-            child$( 
+            child$(
                 favorites$,
                 favorites => {
                     return {
                         class: 'w-100 favorite-bar-container favorites-container',
-                        children: favorites.map( (favorite: Favorite) => {
-                           let onclick = () => {
-                                AssetsBrowserClient.getAsset$(favorite.assetId).subscribe( data => {
+                        children: favorites.map((favorite: Favorite) => {
+                            let onclick = () => {
+                                AssetsBrowserClient.getAsset$(favorite.assetId).subscribe(data => {
                                     appState.selectedAsset$.next(new Asset(data))
                                 })
                             }
@@ -141,13 +141,13 @@ export function favoritesBar(appState: AppState, tree: ImmutableTree.View<Nodes.
                                     onclick
                                 }
                                 : {
-                                    innerText: favorite.name, class:" py-2 w-100 ",
-                                    style: { "margin-top": "auto", "margin-bottom": "auto", 'font-size':'small'},
-                                    onclick                                
+                                    innerText: favorite.name, class: " py-2 w-100 ",
+                                    style: { "margin-top": "auto", "margin-bottom": "auto", 'font-size': 'small' },
+                                    onclick
                                 }
                             return {
                                 class: "w-100 fv-pointer  text-center my-2  fv-text-background fv-bg-primary favorite-item",
-                                children:[
+                                children: [
                                     content
                                 ]
                             }
@@ -156,7 +156,7 @@ export function favoritesBar(appState: AppState, tree: ImmutableTree.View<Nodes.
 
                 }
             )
-            
+
         ]
     }
 }
@@ -187,7 +187,7 @@ export function simpleHeader(state: AppState, faIcon, node: Nodes.BrowserNode) {
             {
                 tag: 'span', class: 'mx-2 w-100',
                 innerText: node.name,
-                style: attr$( 
+                style: attr$(
                     node.status$,
                     (statusList) => {
                         return statusList.find(status => status.type == "cut")
@@ -204,7 +204,7 @@ export function simpleHeader(state: AppState, faIcon, node: Nodes.BrowserNode) {
                         : {}
             )
         ]
-    } 
+    }
 }
 
 
@@ -215,7 +215,7 @@ export function progressHeader(state: BrowserState, node: Nodes.ProgressNode) {
         class: 'd-flex w-100 align-items-baseline fv-pointer',
         children: [
             {
-                tag: 'i', 
+                tag: 'i',
                 class: attr$(
                     node.progress$,
                     p => p.step == UploadStep.SENDING
@@ -235,9 +235,10 @@ export function progressHeader(state: BrowserState, node: Nodes.ProgressNode) {
                             {
                                 style: attr$(
                                     node.progress$,
-                                    p => ({ width: "" + p.percentSent + "%", 
-                                            height: "5px", 'background-color': 'green'
-                                            })
+                                    p => ({
+                                        width: "" + p.percentSent + "%",
+                                        height: "5px", 'background-color': 'green'
+                                    })
                                 )
                             },
                             { class: "flex-grow-1" }
@@ -261,24 +262,24 @@ export function headerViewTree(state: AppState, node: Nodes.BrowserNode): Virtua
         return child$(
             node.status$,
             statusList => statusList.find(s => s.type == 'renaming')
-            ? headerRenamed(node, state)
-            : simpleHeader(state, "fas fa-hdd", node)
+                ? headerRenamed(node, state)
+                : simpleHeader(state, "fas fa-hdd", node)
         )
 
     if (node instanceof Nodes.FolderNode)
         return child$(
             node.status$,
             statusList => statusList.find(s => s.type == 'renaming')
-            ? headerRenamed(node, state)
-            : simpleHeader(state, "fas fa-folder", node)
+                ? headerRenamed(node, state)
+                : simpleHeader(state, "fas fa-folder", node)
         )
 
     if (node instanceof Nodes.FluxProjectNode)
         return child$(
             node.status$,
             statusList => statusList.find(s => s.type == 'renaming')
-            ? headerRenamed(node, state)
-            : simpleHeader(state, "fas fa-play", node)
+                ? headerRenamed(node, state)
+                : simpleHeader(state, "fas fa-play", node)
         )
 
     if (node instanceof Nodes.FluxPackNode)
@@ -318,15 +319,15 @@ export function headerViewBrowserGroup(state: ExpandableGroup.State) {
             {
                 class: 'd-flex align-items-center fv-pointer',
                 children: [
-                    {   tag: 'i', class: attr$( state.expanded$, d => d ? "fas fa-caret-down" : "fas fa-caret-right") },
-                    {   tag: 'span', class: 'px-2 fv-text-focus', innerText: state.name },
+                    { tag: 'i', class: attr$(state.expanded$, d => d ? "fas fa-caret-down" : "fas fa-caret-right") },
+                    { tag: 'span', class: 'px-2 fv-text-focus', innerText: state.name },
                     {
                         class: attr$(
-                            filterDetails, 
-                            expanded => expanded ? 'fv-text-focus' : 'fv-text-primary', 
-                            { wrapper:(d)=>baseClassesDetail+" "+d }),
-                        onclick: (ev) => { 
-                            filterDetails.next(!filterDetails.getValue()); ev.stopPropagation() 
+                            filterDetails,
+                            expanded => expanded ? 'fv-text-focus' : 'fv-text-primary',
+                            { wrapper: (d) => baseClassesDetail + " " + d }),
+                        onclick: (ev) => {
+                            filterDetails.next(!filterDetails.getValue()); ev.stopPropagation()
                         }
                     },
                     {
@@ -346,19 +347,20 @@ export function headerViewBrowserGroup(state: ExpandableGroup.State) {
             child$(
                 filterDetails,
                 expanded => {
-                return expanded
-                    ? { 
-                        class: 'fv-text-focus w-100 text-center', 
-                        tag: 'i', 
-                        innerText: 'Here will come advanced filtering options' }
-                    : {}
-            })
+                    return expanded
+                        ? {
+                            class: 'fv-text-focus w-100 text-center',
+                            tag: 'i',
+                            innerText: 'Here will come advanced filtering options'
+                        }
+                        : {}
+                })
         ]
     }
 }
 
 
-function contextMenuView(actions: Array<Action>, ev: MouseEvent ){
+function contextMenuView(actions: Array<Action>, ev: MouseEvent) {
 
     let actionView = (text, faClass) => ({
         class: 'd-flex align-items-center',
@@ -367,18 +369,18 @@ function contextMenuView(actions: Array<Action>, ev: MouseEvent ){
             { tag: 'span', class: 'mx-3', innerText: text, style: { 'user-select': 'none' } }
         ]
     })
-    
+
     let div = undefined
     let vDOM = {
         class: 'py-1 fv-bg-background-alt fv-text-primary position-absolute',
-        style: { 
-            top: `${ev.clientY - 25}px`, 
-            left: `${ev.clientX - 25}px` 
+        style: {
+            top: `${ev.clientY - 25}px`,
+            left: `${ev.clientX - 25}px`
         },
         onmouseleave: () => div.remove(),
         children: actions.map(action => ({
             class: 'px-3 fv-hover-text-focus fv-pointer',
-            children: [actionView(action.name,action.icon)],
+            children: [actionView(action.name, action.icon)],
             onclick: () => { action.exe(); div.remove() }
         }))
     }

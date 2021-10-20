@@ -2,7 +2,7 @@ import { BehaviorSubject, Subject } from 'rxjs'
 import { AppState } from '../../app.state'
 import { Asset, AssetWithAccessInfo } from '../../data'
 import { AssetTabView } from "./data"
-import {child$, VirtualDOM} from '@youwol/flux-view'
+import { child$, VirtualDOM } from '@youwol/flux-view'
 import * as Data from './assets/data.view'
 import * as ExposedGroup from './assets/exposed-group.view'
 import * as FluxProject from './assets/flux-project.view'
@@ -101,7 +101,7 @@ function title(appState: AppState, asset: AssetWithAccessInfo) {
 
     let edition$ = new BehaviorSubject<boolean>(false)
     let value$ = new BehaviorSubject<string>(asset.name)
-    return child$( 
+    return child$(
         edition$,
         edited => {
             return edited
@@ -126,7 +126,7 @@ function title(appState: AppState, asset: AssetWithAccessInfo) {
                             innerText: asset.name,
                             style: { 'font-size': 'xxx-large' }
                         },
-                        child$( 
+                        child$(
                             asset.accessInfo$.pipe(filter(info => info.consumerInfo.permissions.write)),
                             () => editBttn(edition$)
                         )
@@ -188,7 +188,7 @@ function description(appState: AppState, asset: AssetWithAccessInfo) {
                                     asset.accessInfo$.pipe(filter(info => info.consumerInfo.permissions.write)),
                                     () => editBttn(edition$)
                                 )
-                            ] 
+                            ]
                         },
                         {
                             class: 'w-100 text-justify fv-text-primary',
@@ -227,7 +227,7 @@ function tagView(appState: AppState, asset: AssetWithAccessInfo, tag: string) {
                 innerText: tag
             },
             child$(
-                asset.accessInfo$.pipe( filter(info => info.consumerInfo.permissions.write)),
+                asset.accessInfo$.pipe(filter(info => info.consumerInfo.permissions.write)),
                 () => ({
                     tag: 'i',
                     class: 'fas fa-times fv-color-primary',
@@ -237,7 +237,7 @@ function tagView(appState: AppState, asset: AssetWithAccessInfo, tag: string) {
                     }
                 })
             )
-            
+
         ]
     }
 }

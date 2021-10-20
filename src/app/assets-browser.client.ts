@@ -111,6 +111,13 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
+    static newStory$(node: Nodes.FolderNode) {
+
+        let url = `${AssetsBrowserClient.urlBaseAssets}/story/location/${node.id}`
+        let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
+        return FluxLibCore.createObservableFromFetch(request)
+    }
+
     static purgeDrive$(node: Nodes.TrashNode) {
 
         let url = AssetsBrowserClient.urlBaseOrganisation + `/drives/${node.driveId}/purge`

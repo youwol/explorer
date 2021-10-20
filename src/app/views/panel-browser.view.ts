@@ -282,6 +282,14 @@ export function headerViewTree(state: AppState, node: Nodes.BrowserNode): Virtua
                 : simpleHeader(state, "fas fa-play", node)
         )
 
+    if (node instanceof Nodes.StoryNode)
+        return child$(
+            node.status$,
+            statusList => statusList.find(s => s.type == 'renaming')
+                ? headerRenamed(node, state)
+                : simpleHeader(state, "fas fa-book", node)
+        )
+
     if (node instanceof Nodes.FluxPackNode)
         return simpleHeader(state, "fas fa-box", node)
 

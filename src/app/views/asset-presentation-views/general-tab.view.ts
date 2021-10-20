@@ -6,6 +6,7 @@ import { child$, VirtualDOM } from '@youwol/flux-view'
 import * as Data from './assets/data.view'
 import * as ExposedGroup from './assets/exposed-group.view'
 import * as FluxProject from './assets/flux-project.view'
+import * as Story from './assets/story.view'
 import * as FluxPack from './assets/flux-pack.view'
 import { filter, map } from 'rxjs/operators'
 
@@ -14,6 +15,7 @@ let viewFactory = {
     'data': (appState: AppState, asset: AssetWithAccessInfo) => Data.preview(appState, asset),
     'group-showcase': (appState: AppState, asset: AssetWithAccessInfo) => ExposedGroup.preview(appState, asset),
     'flux-project': (appState: AppState, asset: AssetWithAccessInfo) => FluxProject.preview(appState, asset),
+    'story': (appState: AppState, asset: AssetWithAccessInfo) => Story.preview(appState, asset),
     'flux-pack': (appState: AppState, asset: AssetWithAccessInfo) => FluxPack.preview(appState, asset),
     'package': (appState: AppState, asset: AssetWithAccessInfo) => FluxPack.preview(appState, asset),
     'drive-pack': (appState: AppState, asset: AssetWithAccessInfo) => Data.preview(appState, asset)
@@ -23,6 +25,7 @@ let actionFactory = {
     'data': (asset: Asset) => Data.getActions(asset),
     'group-showcase': (asset: Asset) => ExposedGroup.getActions(asset),
     'flux-project': (asset: Asset) => FluxProject.getActions(asset),
+    'story': (asset: Asset) => Story.getActions(asset),
     'flux-pack': (asset: Asset) => FluxPack.getActions(asset),
     'package': (asset: Asset) => FluxPack.getActions(asset),
     'drive-pack': (asset: Asset) => Data.getActions(asset)

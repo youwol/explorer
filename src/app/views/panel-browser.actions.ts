@@ -83,6 +83,11 @@ let ALL_ACTIONS = {
         exe: () => { state.newFluxProject(node as any) },
         applicable: (node, permissions) => node instanceof Nodes.FolderNode && permissions.write
     }),
+    newStory: (state: AppState, node: Nodes.FolderNode) => ({
+        icon: 'fas fa-book', name: 'new story', enable: false,
+        exe: () => { state.newStory(node as any) },
+        applicable: (node, permissions) => node instanceof Nodes.FolderNode && permissions.write
+    }),
     paste: (state: AppState, node: Nodes.FolderNode) => ({
         icon: 'fas fa-paste', name: 'paste', enable: true,
         exe: () => { state.pasteItem(node as Nodes.FolderNode) },

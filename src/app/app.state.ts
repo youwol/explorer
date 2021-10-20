@@ -202,9 +202,10 @@ export class AppState extends BrowserState{
     addImageFromClipboard(pasteEvent) {
 
         let asset = this.selectedAsset$.getValue()
-        let item = pasteEvent.clipboardData.items[0];
-        if (item.type.indexOf("image") === 0) {
-            var file = item.getAsFile();
+
+        let files = pasteEvent.clipboardData.files;
+        if (files.length == 1 && files[0].type.indexOf("image") === 0) {
+            var file = files[0];
             let picture = this.newImage(URL.createObjectURL(file), file)
             AssetsBrowserClient.addPicture$(asset, picture)
             .subscribe( (asset: any) => {

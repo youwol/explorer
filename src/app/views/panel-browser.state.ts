@@ -202,6 +202,29 @@ export class BrowserState extends ImmutableTree.State<Nodes.BrowserNode>{
         )
     }
 
+    newStory$(parentNode: Nodes.FolderNode): Observable<{ node: Nodes.StoryNode, parentNode: Nodes.FolderNode | Nodes.DriveNode }> {
+
+        let uid = uuidv4()
+        parentNode.addStatus({ type: 'request-pending', id: uid })
+
+        return AssetsBrowserClient.newStory$(parentNode).pipe(
+            map((resp: any) => {
+                parentNode.removeStatus({ type: 'request-pending', id: uid })
+                let projectNode = new Nodes.StoryNode({
+                    id: resp.treeId,
+                    groupId: parentNode.groupId,
+                    driveId: parentNode.driveId,
+                    name: resp.name,
+                    assetId: resp.assetId,
+                    relatedId: resp.relatedId,
+                    borrowed: false,
+                })
+                this.addChild(parentNode, projectNode)
+                return { node: projectNode, parentNode }
+            })
+        )
+    }
+
     newGroupShowcase$(parentNode: Nodes.FolderNode, { groupId, path }):
         Observable<{ node: Nodes.ExposedGroupNode, parentNode: Nodes.FolderNode | Nodes.DriveNode }> {
 

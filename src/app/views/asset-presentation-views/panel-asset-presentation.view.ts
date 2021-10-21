@@ -16,6 +16,7 @@ let tabsFactory = {
     'data': (appState: AppState, asset: AssetWithAccessInfo) => [new DataMetadataTabView(asset, appState)],
     'group-showcase': (appState: AppState, asset: AssetWithAccessInfo) => [],
     'flux-project': (appState: AppState, asset: AssetWithAccessInfo) => [new FluxProjectDependenciesTabView(asset, appState)],
+    'story': (appState: AppState, asset: AssetWithAccessInfo) => [],
     'flux-pack': (appState: AppState, asset: AssetWithAccessInfo) => [new PackageTabView(asset, appState)],
     'package': (appState: AppState, asset: AssetWithAccessInfo) => [new PackageTabView(asset, appState)],
     'drive-pack': (appState: AppState, asset: AssetWithAccessInfo) => []

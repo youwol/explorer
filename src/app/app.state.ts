@@ -125,6 +125,14 @@ export class AppState extends BrowserState{
         })
     }
 
+    newStory(node: Nodes.FolderNode) {
+
+        this.browserState.newStory$(node).subscribe( ({node, parentNode}) => {
+            this.updateSelection(parentNode)   
+            this.updateSelection(node)   
+        })
+    }
+
     rename(node: Nodes.DriveNode  | Nodes.FolderNode | Nodes.ItemNode, newName: string) {
 
         node.removeStatus({ type: 'renaming' })

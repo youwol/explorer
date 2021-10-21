@@ -223,6 +223,18 @@ export namespace Nodes {
             super({ id, groupId, name, driveId, assetId, relatedId, borrowed })
         }
     }
+
+    export class StoryNode extends ItemNode {
+
+        constructor({ id, groupId, driveId, name, assetId, relatedId, borrowed }:
+            {
+                id: string, groupId: string, driveId: string, name: string,
+                assetId: string, relatedId: string, borrowed: boolean,
+            }) {
+            super({ id, groupId, name, driveId, assetId, relatedId, borrowed })
+        }
+    }
+
     export class FluxPackNode extends ItemNode {
 
         constructor({ id, groupId, driveId, name, assetId, relatedId, borrowed }:

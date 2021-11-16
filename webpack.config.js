@@ -11,7 +11,7 @@ module.exports = {
     context: ROOT,
     mode: 'development',
     entry: {
-        'main': './on-load.ts'
+        'main': './main.ts'
     },
     experiments: {
         topLevelAwait: true

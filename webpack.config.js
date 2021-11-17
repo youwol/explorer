@@ -50,12 +50,14 @@ module.exports = {
         "rxjs/operators": "window['rxjs']['operators']",
         "@youwol/flux-core": "window['@youwol/flux-core']",
         "@youwol/flux-view": "window['@youwol/flux-view']",
-        '@youwol/fv-group':"window['@youwol/fv-group']",
-        '@youwol/fv-tree':"window['@youwol/fv-tree']",
-        '@youwol/fv-input':"window['@youwol/fv-input']",
-        '@youwol/fv-button':"window['@youwol/fv-button']",    
-        '@youwol/fv-tabs':"window['@youwol/fv-tabs']",      
-        '@youwol/cdn-client':"window['@youwol/cdn-client']"
+        '@youwol/fv-group': "window['@youwol/fv-group']",
+        '@youwol/fv-tree': "window['@youwol/fv-tree']",
+        '@youwol/fv-input': "window['@youwol/fv-input']",
+        '@youwol/fv-button': "window['@youwol/fv-button']",
+        '@youwol/fv-tabs': "window['@youwol/fv-tabs']",
+        '@youwol/cdn-client': "window['@youwol/cdn-client']",
+        "@youwol/flux-files": "window['@youwol/flux-files']",
+        '@youwol/flux-youwol-essentials': "window['@youwol/flux-youwol-essentials']"
     }
     ],
     module: {
@@ -73,12 +75,12 @@ module.exports = {
             *****************/
             {
                 test: /\.ts$/,
-                exclude: [ /node_modules/ ],
+                exclude: [/node_modules/],
                 use: 'ts-loader'
-            }, 
+            },
             {
                 test: /\.css$/i,
-                use: [  MiniCssExtractPlugin.loader, 'css-loader' ]
+                use: [MiniCssExtractPlugin.loader, 'css-loader']
             }
         ]
     },

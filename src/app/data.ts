@@ -1,7 +1,7 @@
 import { uuidv4 } from '@youwol/flux-core';
 import { ImmutableTree } from "@youwol/fv-tree";
 import { BehaviorSubject, Observable } from "rxjs";
-import { share, tap } from 'rxjs/operators';
+import { delay, share, tap } from 'rxjs/operators';
 import { AssetsBrowserClient } from './assets-browser.client';
 
 
@@ -126,12 +126,13 @@ export namespace Nodes {
             this.status$.next(newStatus)
         }
         resolveChildren(): Observable<Array<BrowserNode>> {
-            if (!this.children || Array.isArray(this.children))
+            if (!this.children)
                 return
 
             let uid = uuidv4()
             this.addStatus({ type: 'request-pending', id: uid })
             return super.resolveChildren().pipe(
+                delay(1000),
                 tap(() => {
                     this.removeStatus({ type: 'request-pending', id: uid })
                 })
@@ -177,20 +178,44 @@ export namespace Nodes {
         groupId: string
         driveId: string
         parentFolderId: string
+        icon = "fas fa-folder"
 
-        constructor({ id, groupId, driveId, parentFolderId, name, children }:
-            { id: string, groupId: string, parentFolderId: string, driveId: string, name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
-            super({ id, name, children })
-            this.name = name
-            this.driveId = driveId
-            this.parentFolderId = parentFolderId
-            this.groupId = groupId
+        constructor(params:
+            {
+                id: string, groupId: string, parentFolderId: string, driveId: string,
+                name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>>,
+                icon?: string
+            }) {
+            super(params)
+            Object.assign(this, params)
         }
     }
+    export class HomeNode extends FolderNode {
+
+        constructor(params:
+            { id: string, groupId: string, parentFolderId: string, driveId: string, name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
+            super({ ...params, icon: "fas fa-home" })
+        }
+    }
+    export class DownloadNode extends FolderNode {
+
+        constructor(params:
+            { id: string, groupId: string, parentFolderId: string, driveId: string, name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
+            super({ ...params, icon: "fas fa-download" })
+        }
+    }
+    export class RecentNode extends BrowserNode {
+        icon = "fas fa-clock"
+        constructor(params) {
+            super(params)
+        }
+    }
+
+
     export abstract class ItemNode extends BrowserNode {
 
         name: string
-        //folderId: string
+        icon: "fas fa-file"
         groupId: string
         driveId: string
         relatedId: string
@@ -257,7 +282,7 @@ export namespace Nodes {
     }
 
     export class TrashNode extends BrowserNode {
-
+        icon = "fas fa-trash"
         name: string
         groupId: string
         driveId: string

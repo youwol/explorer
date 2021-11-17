@@ -1,9 +1,10 @@
 import { BehaviorSubject, Observable, of } from "rxjs";
-import { map, mergeMap, tap } from 'rxjs/operators';
+import { delay, map, mergeMap, tap } from 'rxjs/operators';
 import { Asset, Nodes, progressMessage, UploadStep } from './data';
 
 import * as FluxLibCore from '@youwol/flux-core'
 import { uuidv4 } from '@youwol/flux-core';
+import { ImmutableTree } from "@youwol/fv-tree";
 
 export class Drive {
 
@@ -49,12 +50,89 @@ export class Item {
         this.borrowed = borrowed
     }
 }
+let debugDelay = 1000
 
-
+let databaseActionsFactory = {
+    addFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+        when: () => {
+            return update.command instanceof ImmutableTree.AddChildCommand
+                && update.addedNodes.length == 1
+                && update.addedNodes[0] instanceof Nodes.BrowserNode
+        },
+        then: () => {
+            let node = update.addedNodes[0]
+            let cmd = update.command as ImmutableTree.AddChildCommand<Nodes.FolderNode>
+            let uid = uuidv4()
+            node.addStatus({ type: 'request-pending', id: uid })
+            AssetsBrowserClient.newFolder$(cmd.parentNode, { name: node.name, folderId: node.id }).pipe(
+                delay(debugDelay)
+            )
+                .subscribe((resp: Folder) => {
+                    cmd.parentNode.removeStatus({ type: 'request-pending', id: uid })
+                })
+        }
+    }),
+    renameFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+        when: () => {
+            return update.command instanceof ImmutableTree.ReplaceAttributesCommand
+                && update.addedNodes.length == 1
+                && update.addedNodes[0] instanceof Nodes.FolderNode
+        },
+        then: () => {
+            let node = update.addedNodes[0] as Nodes.FolderNode
+            let uid = uuidv4()
+            node.addStatus({ type: 'request-pending', id: uid })
+            AssetsBrowserClient.renameFolder$(node, node.name).pipe(
+                delay(debugDelay)
+            )
+                .subscribe((resp: Folder) => {
+                    node.removeStatus({ type: 'request-pending', id: uid })
+                })
+        }
+    }),
+    renameItem: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+        when: () => {
+            return update.command instanceof ImmutableTree.ReplaceAttributesCommand
+                && update.addedNodes.length == 1
+                && update.addedNodes[0] instanceof Nodes.ItemNode
+        },
+        then: () => {
+            let node = update.addedNodes[0] as Nodes.ItemNode
+            let uid = uuidv4()
+            node.addStatus({ type: 'request-pending', id: uid })
+            AssetsBrowserClient.renameAsset$(node, node.name).pipe(
+                delay(debugDelay)
+            )
+                .subscribe(() => {
+                    node.removeStatus({ type: 'request-pending', id: uid })
+                })
+        }
+    }),
+    deleteFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+        when: () => {
+            return update.command instanceof ImmutableTree.RemoveNodeCommand
+                && update.removedNodes.length == 1
+                && update.removedNodes[0] instanceof Nodes.FolderNode
+        },
+        then: () => {
+            let node = update.removedNodes[0] as Nodes.FolderNode
+            let cmd = update.command as ImmutableTree.RemoveNodeCommand<Nodes.FolderNode>
+            let parent = cmd.parentNode
+            let uid = uuidv4()
+            parent.addStatus({ type: 'request-pending', id: uid })
+            AssetsBrowserClient.deleteFolder$(node).pipe(
+                delay(debugDelay)
+            )
+                .subscribe(() => {
+                    parent.removeStatus({ type: 'request-pending', id: uid })
+                })
+        }
+    }),
+}
 export class AssetsBrowserClient {
 
     static urlBase = '/api/assets-gateway'
-    static urlBaseOrganisation = '/api/assets-gateway/tree'
+    static urlBaseOrganization = '/api/assets-gateway/tree'
     static urlBaseAssets = '/api/assets-gateway/assets'
     static urlBaseRaws = '/api/assets-gateway/raw'
 
@@ -62,13 +140,34 @@ export class AssetsBrowserClient {
 
     static headers: { [key: string]: string } = {}
 
+    static execute(update: ImmutableTree.Updates<Nodes.BrowserNode>) {
+
+        let command = Object.values(databaseActionsFactory)
+            .map(actionFactory => actionFactory(update))
+            .find(action => action.when())
+        console.log("Execute command", { update, command })
+        command && command.then()
+    }
     static setHeaders(headers: { [key: string]: string }) {
         AssetsBrowserClient.headers = headers
     }
 
+    static getUserInfo$() {
+        let url = `${AssetsBrowserClient.urlBase}/user-info`
+        let request = new Request(url, { headers: AssetsBrowserClient.headers })
+        return FluxLibCore.createObservableFromFetch(request)
+    }
+
+    static getDefaultDrive$() {
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/drives/default-drive`
+        let request = new Request(url, { headers: AssetsBrowserClient.headers })
+        return FluxLibCore.createObservableFromFetch(request)
+    }
+
+
     static newDrive$(node: Nodes.GroupNode) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/groups/${node.id}/drives`
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/groups/${node.id}/drives`
         let body = { "name": "new drive" }
 
         let request = new Request(url, { method: 'PUT', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
@@ -77,7 +176,7 @@ export class AssetsBrowserClient {
 
     static deleteItem$(node: Nodes.FluxProjectNode) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/items/${node.id}`
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/items/${node.id}`
         let uid = uuidv4()
         node.addStatus({ type: 'request-pending', id: uid })
         let request = new Request(url, { method: 'DELETE', headers: AssetsBrowserClient.headers })
@@ -86,7 +185,7 @@ export class AssetsBrowserClient {
 
     static deleteFolder$(node: Nodes.FolderNode) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/folders/${node.id}`
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
 
         let uid = uuidv4()
         node.addStatus({ type: 'request-pending', id: uid })
@@ -96,7 +195,7 @@ export class AssetsBrowserClient {
 
     static deleteDrive$(node: Nodes.DriveNode) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/drives/${node.id}`
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/drives/${node.id}`
 
         let uid = uuidv4()
         node.addStatus({ type: 'request-pending', id: uid })
@@ -120,17 +219,15 @@ export class AssetsBrowserClient {
 
     static purgeDrive$(node: Nodes.TrashNode) {
 
-        let url = AssetsBrowserClient.urlBaseOrganisation + `/drives/${node.driveId}/purge`
+        let url = AssetsBrowserClient.urlBaseOrganization + `/drives/${node.driveId}/purge`
         let request = new Request(url, { method: 'DELETE', headers: AssetsBrowserClient.headers })
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static newFolder$(node: Nodes.DriveNode | Nodes.FolderNode) {
+    static newFolder$(node: Nodes.DriveNode | Nodes.FolderNode, body: { name: string, folderId: string }) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/folders/${node.id}`
-        let body = {
-            "name": "new folder"
-        }
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
+
         let request = new Request(url, {
             method: 'PUT', body: JSON.stringify(body),
             headers: AssetsBrowserClient.headers
@@ -140,7 +237,7 @@ export class AssetsBrowserClient {
 
     static renameFolder$(node: Nodes.FolderNode, newName: string) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/folders/${node.id}`
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
         let body = { "name": newName }
         let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
         return FluxLibCore.createObservableFromFetch(request)
@@ -148,7 +245,7 @@ export class AssetsBrowserClient {
 
     static renameDrive$(node: Nodes.DriveNode, newName: string) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/drives/${node.driveId}`
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/drives/${node.driveId}`
         let body = { "name": newName }
         let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
         return FluxLibCore.createObservableFromFetch(request)
@@ -165,7 +262,7 @@ export class AssetsBrowserClient {
 
     static move$(target: Nodes.ItemNode | Nodes.FolderNode, folder: Nodes.FolderNode | Nodes.DriveNode) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/${target.id}/move`
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/${target.id}/move`
         let body = { destinationFolderId: folder.id }
 
         let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
@@ -174,7 +271,7 @@ export class AssetsBrowserClient {
 
     static borrow$(target: Nodes.ItemNode | Nodes.FolderNode, folder: Nodes.FolderNode | Nodes.DriveNode) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganisation}/${target.id}/borrow`
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/${target.id}/borrow`
         let body = { destinationFolderId: folder.id }
 
         let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })

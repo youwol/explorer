@@ -40,7 +40,7 @@ export function createBrowserView(appState: AppState) {
                 filter((node) => node instanceof Nodes.FolderNode)
             ).subscribe(
                 (node: Nodes.FolderNode) => {
-                    appState.selectedFolder$.next(node)
+                    //appState.selectedFolder$.next(node)
                 }
             )
             let sub1 = appState.selectedNode$.pipe(
@@ -161,7 +161,7 @@ export function favoritesBar(appState: AppState, tree: ImmutableTree.View<Nodes.
     }
 }
 
-export function headerRenamed(node: Nodes.DriveNode | Nodes.FolderNode | Nodes.ItemNode, state: AppState) {
+export function headerRenamed(node: Nodes.FolderNode | Nodes.ItemNode, state: AppState) {
 
     return {
         tag: 'input', type: 'text', autofocus: true, style: { "z-index": 200 }, class: "mx-2", data: node.name,
@@ -250,7 +250,7 @@ export function progressHeader(state: BrowserState, node: Nodes.ProgressNode) {
     } as VirtualDOM
 }
 
-export function headerViewTree(state: AppState, node: Nodes.BrowserNode): VirtualDOM {
+export function headerViewTree(state: AppState, node: Nodes.FolderNode | Nodes.ItemNode): VirtualDOM {
 
     if (node instanceof Nodes.RootNode)
         return simpleHeader(state, "fas fa-users", node)

@@ -27,16 +27,7 @@ export class BrowserState extends ImmutableTree.State<Nodes.BrowserNode>{
         this.favorites$.next([])
     }
 
-    addFavorite(node: Nodes.ItemNode) {
-        AssetsBrowserClient.getAsset$(node.assetId).subscribe(
-            (asset) => {
-                let favorites = getStoredFavorites()
-                    .filter(asset => asset.assetId != node.assetId)
-                    .concat([new Favorite(asset.name, asset.assetId, asset.thumbnails[0])])
-                this.favorites$.next(favorites)
-                localStorage.setItem('favorites', JSON.stringify(favorites))
-            }
-        )
+    addFavorite(node: Nodes.FolderNode) {
     }
 
     newDrive(node: Nodes.GroupNode) {
@@ -56,23 +47,7 @@ export class BrowserState extends ImmutableTree.State<Nodes.BrowserNode>{
         })
     }
 
-    newFolder(node: Nodes.DriveNode | Nodes.FolderNode) {
 
-        let uid = uuidv4()
-        node.addStatus({ type: 'request-pending', id: uid })
-        AssetsBrowserClient.newFolder$(node)
-            .subscribe((resp: Folder) => {
-                node.removeStatus({ type: 'request-pending', id: uid })
-
-                this.addChild(node, new Nodes.FolderNode({
-                    id: resp.folderId,
-                    groupId: node.groupId,
-                    driveId: node.driveId,
-                    parentFolderId: resp.parentFolderId,
-                    name: resp.name, children: []
-                }))
-            })
-    }
 
     purgeDrive(node: Nodes.TrashNode) {
 

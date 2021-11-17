@@ -184,7 +184,7 @@ let ALL_ACTIONS = {
     }),
     favorite: (state: AppState, node: Nodes.ItemNode) => ({
         icon: 'fas fa-star', name: 'add to favorite bar', enable: true,
-        exe: () => { state.addFavorite(node) },
+        exe: () => { state.addFavorite(node as any) },
         applicable: (node, permissions) => node instanceof Nodes.ItemNode
     }),
 }

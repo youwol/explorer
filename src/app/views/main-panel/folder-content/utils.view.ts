@@ -2,6 +2,8 @@ import { attr$, child$, Stream$, VirtualDOM } from "@youwol/flux-view";
 import { ywSpinnerView } from "@youwol/flux-youwol-essentials";
 import { AppState } from "../../../app.state";
 import { Nodes } from "../../../data";
+import { FluxApp } from "../../../specific-assets/flux/flux.view";
+import { StoryApp } from "../../../specific-assets/story/story.view";
 
 
 
@@ -14,6 +16,7 @@ export class RenamableItemView {
         userSelect: 'none'
     }
     public readonly onclick: any
+    public readonly ondblclick: any
     public readonly state: AppState
     public readonly item: Nodes.FolderNode | Nodes.ItemNode
 
@@ -49,7 +52,14 @@ export class RenamableItemView {
                 }
             )
         ]
-        this.onclick = () => this.state.selectItem(this.item)
+        this.onclick = () => this.state.selectItem(this.item),
+            this.ondblclick = () => {
+                let s = this.state.allStates.find((s) => this.item instanceof s.NodeType)
+                if (!s) {
+                    return
+                }
+                this.state.run(s.getApp(this.item))
+            }
     }
 
     editView() {

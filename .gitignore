@@ -8,3 +8,4 @@ chart/
 deploy
 nginx.conf
 Dockerfile
+backup

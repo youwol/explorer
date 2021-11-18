@@ -1,7 +1,7 @@
-import { attr$, VirtualDOM } from "@youwol/flux-view"
-import { Subject } from "rxjs"
+import { attr$, children$, VirtualDOM } from "@youwol/flux-view"
 import { AppState } from "../../../app.state"
 import { Nodes } from "../../../data"
+import { Action, getActions$ } from "../../../actions.factory"
 import { RenamableItemView } from "./utils.view"
 
 
@@ -20,8 +20,7 @@ export class DetailsContentView {
     constructor(params: { state: AppState, items: Nodes.BrowserNode[] }) {
 
         Object.assign(this, params)
-
-        console.log("Create cards view", { items: this.items })
+        console.log("DetailsContentView")
         this.children = [
             {
                 class: 'row w-100 justify-content-between py-2 border-bottom',
@@ -30,9 +29,9 @@ export class DetailsContentView {
                 },
                 children: [
                     { innerText: 'Name', class: 'px-2 col-sm text-center' },
-                    { innerText: 'Browser id', class: 'px-2 col-sm text-center' },
-                    { innerText: 'Asset id', class: 'px-2 col-sm text-center' },
-                    { innerText: 'raw id', class: 'px-2 col-sm text-center' }
+                    { innerText: 'actions', class: 'px-2 col-sm text-center' },
+                    { innerText: 'Record id', class: 'px-2 col-sm text-center' },
+                    { innerText: 'URL', class: 'px-2 col-sm text-center' }
                 ]
             },
             {
@@ -40,10 +39,9 @@ export class DetailsContentView {
                 children: this.items
                     .map((item: Nodes.FolderNode | Nodes.ItemNode) => {
                         let treeId = item.id
-                        let assetId = ""
-                        let rawId = ""
-                        if (item instanceof Nodes.ItemNode) {
-                            assetId = item.relatedId
+                        let url = ""
+                        if (item instanceof Nodes.DataNode) {
+                            url = `/api/assets-gateway/raw/data/${item.rawId}`
                         }
                         return {
                             class: attr$(
@@ -64,9 +62,9 @@ export class DetailsContentView {
                             ondblclick: () => this.state.openFolder(item),
                             children: [
                                 { class: 'col-sm', children: [new RenamableItemView({ state: this.state, item })] },
+                                this.cellActionsView(item),
                                 this.cellView(treeId),
-                                this.cellView(assetId),
-                                this.cellView(rawId),
+                                this.cellView(url),
                             ]
                         }
                     })
@@ -74,13 +72,36 @@ export class DetailsContentView {
         ]
     }
 
+    cellActionsView(item) {
+        return {
+            class: 'col-sm',
+            children: [
+                {
+                    class: 'd-flex align-items-center justify-content-center w-100 h-100 my-auto mx-auto',
+                    children: children$(
+                        getActions$(this.state, { node: item, selection: 'direct' }, this.state.specificActions),
+                        (actions: Action[]) => {
+                            return actions.map((action) => this.actionView(action))
+                        }
+                    )
+                }
+            ]
+        }
+    }
+
+    actionView(action: Action) {
+        return {
+            class: `${action.icon} fv-hover-text-focus fv-pointer mx-2`,
+            onclick: () => action.exe()
+        }
+    }
     cellView(name: string, icon: string = ""): VirtualDOM {
 
         return {
-            class: 'px-2 col-sm my-auto',
+            class: 'px-2 col-sm',
             children: [
                 {
-                    class: 'd-flex align-items-center',
+                    class: 'd-flex align-items-center h-100 my-auto mx-auto',
                     children: [{
                         class: `${icon} mr-1`
                     },

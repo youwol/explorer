@@ -34,22 +34,12 @@ export class Asset {
     public readonly images: Array<string>
     public readonly thumbnails: Array<string>
     public readonly tags: Array<string>
-    constructor({ treeId, assetId, rawId, kind, name, groupId, description, images, thumbnails, tags }:
+    constructor(params:
         {
             treeId: string, assetId: string, rawId: string, kind: string, name: string, groupId: string,
             description: string, images: Array<string>, thumbnails: Array<string>, tags: Array<string>
         }) {
-
-        this.treeId = treeId
-        this.assetId = assetId
-        this.rawId = rawId
-        this.kind = kind
-        this.name = name
-        this.groupId = groupId
-        this.description = description
-        this.images = images
-        this.thumbnails = thumbnails
-        this.tags = tags
+        Object.assign(this, params)
     }
 }
 
@@ -90,28 +80,15 @@ export class Favorite {
 }
 export namespace Nodes {
 
-    export function itemNodeFactory(data) {
-
-        if (data.kind == 'flux-project')
-            return new Nodes.FluxProjectNode(data)
-
-        if (data.kind == 'data')
-            return new Nodes.DataNode(data)
-
-        if (data.kind == 'package')
-            return new Nodes.PackageNode(data)
-
-        throw Error(`itemNodeFactory: ${data.kind} not known`)
-    }
-
     export class BrowserNode extends ImmutableTree.Node {
 
         name: string
         status$ = new BehaviorSubject<Array<{ type: string, id: string }>>([])
+        icon: string
 
-        constructor({ id, name, children }: { id: string, name: string, children?: undefined | Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
-            super({ id, children })
-            this.name = name
+        constructor(params: { id: string, name: string, icon?: string, children?: undefined | Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
+            super(params)
+            Object.assign(this, params)
         }
 
         addStatus({ type, id }: { type: string, id?: string }) {
@@ -218,66 +195,73 @@ export namespace Nodes {
         icon: "fas fa-file"
         groupId: string
         driveId: string
-        relatedId: string
+        rawId: string
         assetId: string
         borrowed: boolean
 
-        constructor({ id, groupId, name, driveId, assetId, relatedId, borrowed }:
+        constructor(params:
             {
                 id: string, groupId: string, driveId: string, name: string,
-                assetId: string, relatedId: string, borrowed: boolean,
+                assetId: string, rawId: string, borrowed: boolean,
+                icon?: string
             }) {
-            super({ id, name, children: undefined })
-            this.name = name
-            //this.folderId = folderId
-            this.groupId = groupId
-            this.assetId = assetId
-            this.relatedId = relatedId
-            this.driveId = driveId
-            this.borrowed = borrowed
+            super({ ...params, children: undefined })
+            Object.assign(this, params)
         }
     }
 
     export class FluxProjectNode extends ItemNode {
 
-        constructor({ id, groupId, driveId, name, assetId, relatedId, borrowed }:
+        constructor(params:
             {
                 id: string, groupId: string, driveId: string, name: string,
-                assetId: string, relatedId: string, borrowed: boolean,
+                assetId: string, rawId: string, borrowed: boolean,
             }) {
-            super({ id, groupId, name, driveId, assetId, relatedId, borrowed })
+            super({ ...params, icon: 'fas fa-play' })
+        }
+    }
+    export class FutureNode extends BrowserNode {
+        onResponse: any
+        request: any
+        constructor(params:
+            {
+                icon: string, name: string, onResponse: any, request: any
+            }) {
+            super({ ...params, id: uuidv4() })
+            Object.assign(this, params)
         }
     }
 
     export class StoryNode extends ItemNode {
-
-        constructor({ id, groupId, driveId, name, assetId, relatedId, borrowed }:
+        kind = "story"
+        constructor({ id, groupId, driveId, name, assetId, rawId, borrowed }:
             {
                 id: string, groupId: string, driveId: string, name: string,
-                assetId: string, relatedId: string, borrowed: boolean,
+                assetId: string, rawId: string, borrowed: boolean,
             }) {
-            super({ id, groupId, name, driveId, assetId, relatedId, borrowed })
+            super({ id, groupId, name, driveId, assetId, rawId, borrowed, icon: 'fas fa-book' })
         }
     }
 
     export class FluxPackNode extends ItemNode {
-
-        constructor({ id, groupId, driveId, name, assetId, relatedId, borrowed }:
+        kind = "flux-project"
+        constructor({ id, groupId, driveId, name, assetId, rawId, borrowed }:
             {
                 id: string, groupId: string, driveId: string, name: string,
-                assetId: string, relatedId: string, borrowed: boolean,
+                assetId: string, rawId: string, borrowed: boolean,
             }) {
-            super({ id, groupId, name, driveId, assetId, relatedId, borrowed })
+            super({ id, groupId, name, driveId, assetId, rawId, borrowed })
         }
     }
 
     export class PackageNode extends ItemNode {
-        constructor({ id, groupId, driveId, name, assetId, relatedId, borrowed }:
+        kind = "package"
+        constructor({ id, groupId, driveId, name, assetId, rawId, borrowed }:
             {
                 id: string, groupId: string, driveId: string, name: string,
-                assetId: string, relatedId: string, borrowed: boolean,
+                assetId: string, rawId: string, borrowed: boolean,
             }) {
-            super({ id, groupId, name, driveId, assetId, relatedId, borrowed })
+            super({ id, groupId, name, driveId, assetId, rawId, borrowed })
         }
     }
 
@@ -327,25 +311,14 @@ export namespace Nodes {
         }
     }
 
-    export class ExposedGroupNode extends ItemNode {
-
-        constructor({ id, groupId, driveId, name, assetId, relatedId, borrowed }:
-            {
-                id: string, groupId: string, driveId: string, name: string,
-                assetId: string, relatedId: string, borrowed: boolean
-            }) {
-            super({ id, groupId, name, driveId, assetId, relatedId, borrowed })
-        }
-    }
-
     export class DataNode extends ItemNode {
-
-        constructor({ id, groupId, name, driveId, assetId, relatedId, borrowed }:
+        kind = "data"
+        constructor({ id, groupId, name, driveId, assetId, rawId, borrowed }:
             {
                 id: string, groupId: string, driveId: string, name: string,
-                assetId: string, relatedId: string, borrowed: boolean
+                assetId: string, rawId: string, borrowed: boolean
             }) {
-            super({ id, groupId, name, assetId, driveId, relatedId, borrowed })
+            super({ id, groupId, name, assetId, driveId, rawId, borrowed })
         }
     }
 

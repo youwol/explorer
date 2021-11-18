@@ -1,9 +1,10 @@
 import { attr$, child$, children$, Stream$, VirtualDOM } from "@youwol/flux-view"
 import { ywSpinnerView } from "@youwol/flux-youwol-essentials"
 import { BehaviorSubject, combineLatest, merge, Subject } from "rxjs"
-import { filter } from "rxjs/operators"
+import { distinctUntilChanged, filter, take } from "rxjs/operators"
 import { AppState } from "../../app.state"
 import { Nodes } from "../../data"
+import { ActionsView } from "./actions.view"
 import { DisplayMode } from "./main-panel.view"
 
 
@@ -46,7 +47,9 @@ class DisplayModesView implements VirtualDOM {
 export class HeaderPathView implements VirtualDOM {
 
     public readonly class = "w-100 d-flex p-2 fv-bg-background-alt"
-
+    style = {
+        height: '50px'
+    }
     public readonly children: VirtualDOM[]// Stream$<Nodes.FolderNode, VirtualDOM[]>
 
     public readonly state: AppState
@@ -55,13 +58,14 @@ export class HeaderPathView implements VirtualDOM {
     constructor(params: { state: AppState, displayMode$: Subject<DisplayMode> }) {
 
         Object.assign(this, params)
-
+        console.log("HeaderPathView")
         this.children = [
             {
                 class: 'd-flex flex-grow-1',
                 children: children$(
                     this.state.currentFolder$,
                     (folder: Nodes.FolderNode) => {
+
                         let path = this.state.homeTreeState.reducePath(folder.id, (node) => {
                             return node
                         })
@@ -71,8 +75,36 @@ export class HeaderPathView implements VirtualDOM {
                     }
                 )
             },
+            this.actionsMenuView(),
             new DisplayModesView({ displayMode$: this.displayMode$ })
         ]
+    }
+
+    actionsMenuView() {
+        let expanded$ = new BehaviorSubject(false)
+        return {
+            class: 'd-flex align-items-center mr-5 fv-border-primary position-relative fv-pointer rounded fv-bg-secondary-alt px-2 fv-hover-bg-secondary',
+            children: [
+                {
+                    innerText: 'Actions'
+                },
+                {
+                    class: 'fas fa-caret-down mx-1'
+                },
+                {
+                    class: attr$(
+                        expanded$,
+                        (expanded) => expanded ? 'position-absolute' : 'd-none'
+                    ),
+                    style: { top: '100%', right: '0%', zIndex: 100 },
+                    children: [
+                        new ActionsView({ state: this.state })
+                    ]
+                }
+            ],
+            onclick: () => expanded$.next(!expanded$.getValue()),
+            onmouseleave: () => expanded$.next(false),
+        }
     }
 
     loadingSpinner(isLoading$/*selectedNode: Nodes.FolderNode*/) {
@@ -92,7 +124,6 @@ export class HeaderPathView implements VirtualDOM {
     }
 
     pathElemView(node: Nodes.FolderNode, selectedNode: Nodes.FolderNode): VirtualDOM {
-        console.log("Update path header view")
         let baseClass = 'p-1 rounded d-flex align-items-center fv-pointer fv-bg-background'
         return {
             class: node.id == selectedNode.id

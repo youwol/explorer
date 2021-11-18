@@ -1,14 +1,34 @@
 import { AppState } from './app.state'
-import { selectedCardPanel } from './views/asset-presentation-views/panel-asset-presentation.view'
-import { createCardsPanel } from './views/panel-assets-list.view'
-import { createYouwolBrowserPanel } from './views/panel-browser.view'
-import { child$, render, VirtualDOM } from '@youwol/flux-view'
+import { child$, children$, VirtualDOM } from '@youwol/flux-view'
 import { YouwolBannerView, defaultUserMenu, defaultYouWolMenu } from "@youwol/flux-youwol-essentials"
 import { BehaviorSubject, from } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { distinctUntilChanged, map } from 'rxjs/operators'
 import { SideBarView } from './views/sidebar/sidebar.view'
 import { MainPanelView } from './views/main-panel/main-panel.view'
 import { Nodes } from './data'
+import { RunningApp } from './views/main-panel/running-app.view'
+
+
+class RunningAppView implements VirtualDOM {
+
+    public readonly class = 'd-flex w-100 align-items-center rounded fv-bg-background px-2  fv-text-primary fv-pointer border fv-border-focus fv-hover-bg-secondary'
+
+    public readonly children: VirtualDOM[]
+
+    public readonly onclick: () => void
+    constructor(app: RunningApp, state: AppState) {
+        this.children = [
+            {
+                class: app.icon
+            },
+            {
+                class: 'mx-1',
+                innerText: app.title
+            }
+        ]
+        this.onclick = () => state.run(app)
+    }
+}
 
 /**
  * Top banner of the application
@@ -18,7 +38,15 @@ export class TopBannerView extends YouwolBannerView {
     constructor(state: AppState) {
         super({
             state: state.topBannerState,
-            customActionsView: {},
+            customActionsView: {
+                class: 'd-flex',
+                children: children$(
+                    state.runningApplications$,
+                    (applications) => {
+                        return applications.map((appli) => new RunningAppView(appli, state))
+                    }
+                )
+            },
             userMenuView: defaultUserMenu(state.topBannerState),
             youwolMenuView: defaultYouWolMenu(state.topBannerState),
             signedIn$: from(
@@ -32,54 +60,26 @@ export class TopBannerView extends YouwolBannerView {
 export class AppView implements VirtualDOM {
 
     class = 'h-100 w-100 d-flex flex-column fv-text-primary'
+    state = new AppState()
     children: VirtualDOM[]
 
-    constructor(public readonly state: AppState) {
+    constructor() {
 
         this.children = [
-            new TopBannerView(state),
+            new TopBannerView(this.state),
             {
                 class: 'flex-grow-1 w-100 d-flex',
                 style: { minHeight: '0px' },
                 children: [
-                    new SideBarView(state, new BehaviorSubject(true)),
+                    new SideBarView(this.state, new BehaviorSubject(true)),
                     child$(
-                        state.currentFolder$,
-                        (folder: Nodes.FolderNode) => new MainPanelView({ state, folder })
+                        this.state.currentFolder$,
+                        (folder: Nodes.FolderNode) => new MainPanelView({ state: this.state, folder })
                     )
                 ]
             }
         ]
     }
-
-    render() {
-
-        let panel = render({
-            tag: 'div',
-            class: "w-100 h-100 p-1 d-flex",
-            children: [
-                {
-                    class: "d-flex flex-column h-100 ", style: { 'width': '400px', 'min-width': '400px' },
-                    children: [
-                        createYouwolBrowserPanel(this.state)
-                    ]
-                },
-                {
-                    class: "d-flex flex-column w-100 h-100 flex-grow-1",
-                    children: [
-                        createCardsPanel(this.state),
-                        child$(
-                            this.state.selectedAsset$,
-                            selectedAsset => selectedCardPanel(this.state, selectedAsset),
-                        )
-                    ]
-                }
-            ]
-        })
-        document.getElementById("form-content").appendChild(panel)
-    }
-
-
 }
 
 

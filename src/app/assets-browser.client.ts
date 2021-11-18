@@ -57,7 +57,7 @@ let databaseActionsFactory = {
         when: () => {
             return update.command instanceof ImmutableTree.AddChildCommand
                 && update.addedNodes.length == 1
-                && update.addedNodes[0] instanceof Nodes.BrowserNode
+                && update.addedNodes[0] instanceof Nodes.FolderNode
         },
         then: () => {
             let node = update.addedNodes[0]
@@ -126,6 +126,48 @@ let databaseActionsFactory = {
                 .subscribe(() => {
                     parent.removeStatus({ type: 'request-pending', id: uid })
                 })
+        }
+    }),
+    deleteItem: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+        when: () => {
+            return update.command instanceof ImmutableTree.RemoveNodeCommand
+                && update.removedNodes.length == 1
+                && update.removedNodes[0] instanceof Nodes.ItemNode
+        },
+        then: () => {
+            let node = update.removedNodes[0] as Nodes.ItemNode
+            let cmd = update.command as ImmutableTree.RemoveNodeCommand<Nodes.FolderNode>
+            let parent = cmd.parentNode
+            let uid = uuidv4()
+            parent.addStatus({ type: 'request-pending', id: uid })
+            AssetsBrowserClient.deleteItem$(node).pipe(
+                delay(debugDelay)
+            )
+                .subscribe(() => {
+                    parent.removeStatus({ type: 'request-pending', id: uid })
+                })
+        }
+    }),
+    newAsset: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+        when: () => {
+            return update.command instanceof ImmutableTree.AddChildCommand
+                && update.addedNodes.length == 1
+                && update.addedNodes[0] instanceof Nodes.FutureNode
+        },
+        then: () => {
+            let node = update.addedNodes[0] as Nodes.FutureNode
+            let cmd = update.command as ImmutableTree.AddChildCommand<Nodes.BrowserNode>
+            let parentNode = cmd.parentNode as Nodes.FolderNode
+            let uid = uuidv4()
+            node.addStatus({ type: 'request-pending', id: uid })
+            parentNode.addStatus({ type: 'request-pending', id: uid })
+            node.request.pipe(
+                delay(debugDelay)
+            ).subscribe((resp: any) => {
+                parentNode.removeStatus({ type: 'request-pending', id: uid })
+                node.removeStatus({ type: 'request-pending', id: uid })
+                node.onResponse(resp, node)
+            })
         }
     }),
 }
@@ -596,23 +638,15 @@ export class AssetsBrowserClient {
             }), ...items.map((item: Item) => {
                 let assetData = {
                     id: item.treeId,
-                    name: item.name,
                     groupId,
                     driveId,
-                    folderId: folderId,
-                    assetId: item.assetId,
-                    relatedId: item.rawId,
-                    borrowed: item.borrowed
+                    ...item
                 }
                 if (item.kind == "flux-project")
                     return new Nodes.FluxProjectNode(assetData)
                 if (item.kind == "story")
                     return new Nodes.StoryNode(assetData)
-                if (item.kind == "group-showcase")
-                    return new Nodes.ExposedGroupNode(assetData)
                 if (item.kind == "data")
-                    return new Nodes.DataNode(assetData)
-                if (item.kind == "drive-pack")
                     return new Nodes.DataNode(assetData)
                 if (item.kind == "package")
                     return new Nodes.FluxPackNode(assetData)
@@ -626,58 +660,4 @@ export class AssetsBrowserClient {
                 : []
         ]
     }
-
-    /*
-        static deleteFluxProject(assetId, relatedId) {
-    
-            var requestAsset = new Request(`/api/assets-backend/flux-project/${assetId}`, { method: 'DELETE', headers: {} });
-    
-            var requestFlux = new Request(`/api/flux-backend/projects/${relatedId}`, { method: 'DELETE', headers: {} });
-            fetch(requestFlux)
-                .then(response => response.json())
-                .then(_ => { console.log(`flux project ${assetId} deleted from flux-backend`) })
-    
-            return from(fetch(requestAsset).then(response => response.json()))
-        }
-    
-        static deleteFluxComponent(assetId, relatedId) {
-    
-            var requestAsset = new Request(`/api/assets-backend/flux-component/${assetId}`, { method: 'DELETE', headers: {} });
-            fetch(requestAsset)
-                .then(response => response.json())
-                .then(_ => { console.log(`flux component ${assetId} deleted from assets-backend`) })
-    
-            var requestFlux = new Request(`/api/flux-backend/components/${relatedId}`, { method: 'DELETE', headers: {} });
-            fetch(requestFlux)
-                .then(response => response.json())
-                .then(_ => { console.log(`flux component ${assetId} deleted from flux-backend`) })
-        }
-    
-        static duplicateFluxProject(originalAsset) {
-    
-            var requestFlux = new Request(`/api/flux-backend/projects/${originalAsset.relatedId}/duplicate`, { method: 'POST', body: "", headers: {} });
-            return from(fetch(requestFlux).then(response => response.json())).pipe(
-                mergeMap((project) => {
-                    let body = {
-                        relatedId: project.projectId
-                    }
-                    let request = new Request(`/api/assets-backend/flux-project`, { method: 'PUT', body: JSON.stringify(body) });
-                    return from(fetch(request).then(r => r.json()))
-                }),
-                mergeMap((asset) => {
-                    let body = {
-                        name: originalAsset.name,
-                        description: originalAsset.description,
-                        tags: originalAsset.tags,
-                        scope: originalAsset.scope
-                    }
-                    let request = new Request(`/api/assets-backend/flux-project/${asset.assetId}`, { method: 'POST', body: JSON.stringify(body) });
-                    return from(fetch(request).then(r => asset))
-                }),
-                mergeMap((asset: any) => {
-                    let request = new Request(`/api/assets-backend/flux-project/${asset.assetId}`);
-                    return from(fetch(request).then(r => r.json()))
-                })
-            )
-        }*/
 }

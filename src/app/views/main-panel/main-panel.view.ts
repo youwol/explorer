@@ -7,6 +7,7 @@ import { ActionsView } from "./actions.view";
 import { FolderContentView } from "./folder-content/folder-content.view";
 import { HeaderPathView } from "./header-path.view";
 import { HeaderRunningApp, RunningApp } from "./running-app.view";
+import { TerminalView } from "./terminal/terminal.view";
 
 
 export type DisplayMode = "cards" | "miniatures" | "details"
@@ -70,7 +71,9 @@ export class MainPanelView implements VirtualDOM {
                         ]
                     },
                 ]
-            }
+            },
+            new TerminalView()
+
         ]
     }
 }

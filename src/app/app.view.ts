@@ -39,11 +39,16 @@ export class TopBannerView extends YouwolBannerView {
         super({
             state: state.topBannerState,
             customActionsView: {
-                class: 'd-flex',
+                class: 'd-flex flex-wrap',
                 children: children$(
                     state.runningApplications$,
                     (applications) => {
-                        return applications.map((appli) => new RunningAppView(appli, state))
+                        return applications.map((appli) => {
+                            return {
+                                class: 'd-flex flex-column justify-content-center mx-2',
+                                children: [new RunningAppView(appli, state)]
+                            }
+                        })
                     }
                 )
             },

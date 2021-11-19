@@ -1,5 +1,7 @@
 import { attr$, VirtualDOM } from "@youwol/flux-view";
 import { Select } from "@youwol/fv-input";
+import { Observable } from "rxjs";
+import { map } from "rxjs/operators";
 import { Nodes } from "../../data";
 import { RunningApp } from "../../views/main-panel/running-app.view";
 
@@ -33,43 +35,11 @@ class HeaderPreview implements VirtualDOM {
 
 }
 
-class ContentPreview implements VirtualDOM {
-
-    public readonly class = 'h-100 w-100 d-flex'
-    public readonly item: Nodes.FluxProjectNode
-
-    public readonly children: VirtualDOM[]
-
-    public readonly select: Select.State
-
-    constructor(params: {
-        item: Nodes.FluxProjectNode,
-        select: Select.State
-    }) {
-        Object.assign(this, params)
-
-        this.children = [
-            {
-                tag: 'iframe',
-                width: '100%',
-                height: '100%',
-                src: attr$(
-                    this.select.selectionId$,
-                    (mode) => mode == 'reader'
-                        ? `/ui/stories/?id=${this.item.rawId}&conf=eyJ0b3BCYW5uZXIiOmZhbHNlLCAiZWRpdG9yIjogZmFsc2V9`
-                        : `/ui/stories/?id=${this.item.rawId}`
-                )
-            }
-        ]
-    }
-}
-
-export class StoryApp implements RunningApp {
+export class StoryApp extends RunningApp {
 
     public readonly icon = "fas fa-book"
     public readonly title: string
     public readonly headerView: HeaderPreview
-    public readonly contentView: ContentPreview
 
     public readonly item: Nodes.StoryNode
 
@@ -78,13 +48,22 @@ export class StoryApp implements RunningApp {
         { name: 'Writer', id: "writer" }],
         'reader')
 
+    public readonly appURL$: Observable<string>
+
     constructor(params: {
         item: Nodes.FluxProjectNode
     }) {
+        super()
         Object.assign(this, params)
         this.title = this.item.name
+
+        this.appURL$ = this.select.selectionId$.pipe(
+            map((mode) => mode == 'reader'
+                ? `/ui/stories/?id=${this.item.rawId}&conf=eyJ0b3BCYW5uZXIiOmZhbHNlLCAiZWRpdG9yIjogZmFsc2V9`
+                : `/ui/stories/?id=${this.item.rawId}`)
+        )
+
         this.headerView = new HeaderPreview({ item: this.item, select: this.select })
-        this.contentView = new ContentPreview({ item: this.item, select: this.select })
     }
 }
 

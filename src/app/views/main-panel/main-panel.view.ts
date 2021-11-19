@@ -6,7 +6,7 @@ import { Nodes } from "../../data";
 import { ActionsView } from "./actions.view";
 import { FolderContentView } from "./folder-content/folder-content.view";
 import { HeaderPathView } from "./header-path.view";
-import { HeaderRunningApp, RunningApp } from "./running-app.view";
+import { ContentRunningApp, HeaderRunningApp, RunningApp } from "./running-app.view";
 import { TerminalView } from "./terminal/terminal.view";
 
 
@@ -63,10 +63,13 @@ export class MainPanelView implements VirtualDOM {
                         class: attr$(this.state.viewMode$,
                             (mode) => mode == 'navigation' ? 'd-none' : 'h-100 d-flex'
                         ),
+                        style: {
+                            border: 'thick double'
+                        },
                         children: [
                             child$(
                                 this.state.viewMode$.pipe(filter(mode => mode != 'navigation')),
-                                (preview: RunningApp) => preview.contentView
+                                (runningApp: RunningApp) => new ContentRunningApp({ runningApp })
                             )
                         ]
                     },

@@ -60,7 +60,10 @@ export class DetailsContentView {
                             onclick: () => {
                                 this.state.selectItem(item)
                             },
-                            ondblclick: () => this.state.openFolder(item),
+                            ondblclick: () => {
+                                if (item instanceof Nodes.FolderNode)
+                                    this.state.openFolder(item)
+                            },
                             children: [
                                 { class: 'col-sm', children: [new RenamableItemView({ state: this.state, item })] },
                                 this.cellActionsView(item),

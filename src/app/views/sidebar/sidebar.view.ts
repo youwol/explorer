@@ -162,9 +162,9 @@ export class GroupsView implements VirtualDOM {
 
 export class SideBarView implements VirtualDOM {
 
-    class = "fv-bg-background  pt-1 px-2 border-right h-100"
-    style: any
-    children: VirtualDOM[]
+    public readonly class = "fv-bg-background  pt-1 px-2 border-right h-100"
+    public readonly style: any
+    public readonly children: VirtualDOM[]
 
     constructor(state: AppState, extended$: BehaviorSubject<boolean>) {
 

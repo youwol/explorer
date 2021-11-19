@@ -2,7 +2,7 @@ import { AppState } from './app.state'
 import { child$, children$, VirtualDOM } from '@youwol/flux-view'
 import { YouwolBannerView, defaultUserMenu, defaultYouWolMenu } from "@youwol/flux-youwol-essentials"
 import { BehaviorSubject, from } from 'rxjs'
-import { distinctUntilChanged, map } from 'rxjs/operators'
+import { map } from 'rxjs/operators'
 import { SideBarView } from './views/sidebar/sidebar.view'
 import { MainPanelView } from './views/main-panel/main-panel.view'
 import { Nodes } from './data'
@@ -11,7 +11,7 @@ import { RunningApp } from './views/main-panel/running-app.view'
 
 class RunningAppView implements VirtualDOM {
 
-    public readonly class = 'd-flex w-100 align-items-center rounded fv-bg-background px-2  fv-text-primary fv-pointer border fv-border-focus fv-hover-bg-secondary'
+    public readonly class = 'd-flex w-100 align-items-center fv-bg-background px-2 fv-text-primary fv-pointer border-bottom fv-hover-bg-secondary'
 
     public readonly children: VirtualDOM[]
 
@@ -43,10 +43,10 @@ export class TopBannerView extends YouwolBannerView {
                 children: children$(
                     state.runningApplications$,
                     (applications) => {
-                        return applications.map((appli) => {
+                        return applications.map((application) => {
                             return {
                                 class: 'd-flex flex-column justify-content-center mx-2',
-                                children: [new RunningAppView(appli, state)]
+                                children: [new RunningAppView(application, state)]
                             }
                         })
                     }
@@ -76,7 +76,7 @@ export class AppView implements VirtualDOM {
                 class: 'flex-grow-1 w-100 d-flex',
                 style: { minHeight: '0px' },
                 children: [
-                    new SideBarView(this.state, new BehaviorSubject(true)),
+                    new SideBarView(this.state, new BehaviorSubject(false)),
                     child$(
                         this.state.currentFolder$,
                         (folder: Nodes.FolderNode) => new MainPanelView({ state: this.state, folder })

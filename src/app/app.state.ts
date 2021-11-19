@@ -162,16 +162,16 @@ export class AppState {
                 children: [defaultDrive, ...userDrives],
                 icon: 'fas fa-user'
             })
-            this.flux = new FluxState(this.userTree)
-            this.story = new StoryState(this.userTree)
-            this.data = new DataState(this.userTree)
-            this.allStates = [this.flux, this.story, this.data]
-            this.specificActions = this.allStates.map(s => s.actions).flat()
 
             this.userTree = new TreeState({
                 rootNode: userGroup
             })
 
+            this.flux = new FluxState(this.userTree)
+            this.story = new StoryState(this.userTree)
+            this.data = new DataState(this.userTree)
+            this.allStates = [this.flux, this.story, this.data]
+            this.specificActions = this.allStates.map(s => s.actions).flat()
             this.openFolder(this.homeFolderNode)
             this.userTree.directUpdates$.subscribe((updates) => {
                 updates.forEach(update => AssetsBrowserClient.execute(update))

@@ -200,8 +200,8 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static getDefaultDrive$() {
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/drives/default-drive`
+    static getDefaultDrive$(groupId: string) {
+        let url = `${AssetsBrowserClient.urlBaseOrganization}/groups/${groupId}/default-drive`
         let request = new Request(url, { headers: AssetsBrowserClient.headers })
         return FluxLibCore.createObservableFromFetch(request)
     }
@@ -245,9 +245,9 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static purgeDrive$(node: Nodes.TrashNode) {
+    static purgeDrive$(driveId: string) {
 
-        let url = AssetsBrowserClient.urlBaseOrganization + `/drives/${node.driveId}/purge`
+        let url = AssetsBrowserClient.urlBaseOrganization + `/drives/${driveId}/purge`
         let request = new Request(url, { method: 'DELETE', headers: AssetsBrowserClient.headers })
         return FluxLibCore.createObservableFromFetch(request)
     }

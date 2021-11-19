@@ -134,19 +134,7 @@ export namespace Nodes {
             Object.assign(this, params)
         }
     }
-    export class DriveNode extends BrowserNode {
 
-        name: string
-        groupId: string
-        driveId: string
-
-        constructor(params:
-            { id: string, groupId: string, driveId: string, name: string, icon: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
-            super(params)
-            Object.assign(this, params)
-        }
-
-    }
     export class FolderNode extends BrowserNode {
 
         name: string
@@ -165,6 +153,21 @@ export namespace Nodes {
             Object.assign(this, params)
         }
     }
+
+    export class DriveNode extends FolderNode {
+
+        name: string
+        groupId: string
+        driveId: string
+
+        constructor(params:
+            { id: string, groupId: string, driveId: string, name: string, icon: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
+            super({ ...params, parentFolderId: params.groupId })
+            Object.assign(this, params)
+        }
+
+    }
+
     export class HomeNode extends FolderNode {
 
         constructor(params:
@@ -179,7 +182,7 @@ export namespace Nodes {
             super({ ...params, icon: "fas fa-shopping-cart" })
         }
     }
-    export class RecentNode extends BrowserNode {
+    export class RecentNode extends FolderNode {
         icon = "fas fa-clock"
         constructor(params) {
             super(params)
@@ -263,16 +266,14 @@ export namespace Nodes {
         }
     }
 
-    export class TrashNode extends BrowserNode {
+    export class TrashNode extends FolderNode {
         icon = "fas fa-trash"
         name: string
         groupId: string
         driveId: string
-        constructor({ id, groupId, driveId, name, children }: { id: string, groupId: string, driveId: string, name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
-            super({ id, name, children })
-            this.name = name
-            this.driveId = driveId
-            this.groupId = groupId
+        constructor(params: { id: string, groupId: string, driveId: string, name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
+            super({ ...params, parentFolderId: params.driveId })
+            Object.assign(this, params)
         }
     }
 

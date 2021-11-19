@@ -56,7 +56,7 @@ export class MainPanelView implements VirtualDOM {
                             (mode) => mode == 'navigation' ? 'h-100 d-flex' : 'd-none'
                         ),
                         children: [
-                            new FolderContentView({ state: this.state, folderId: this.folder.id, displayMode$: this.displayMode$ })
+                            new FolderContentView({ state: this.state, folderId: this.folder.id, groupId: this.folder.groupId, displayMode$: this.displayMode$ })
                         ]
                     },
                     {

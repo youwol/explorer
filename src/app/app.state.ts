@@ -52,9 +52,98 @@ export type SelectedItem = { node: Nodes.BrowserNode, selection: 'direct' | 'ind
 
 export class TreeGroup extends ImmutableTree.State<Nodes.BrowserNode> {
 
-    constructor({ rootNode }: { rootNode: Nodes.BrowserNode }) {
+    public readonly homeFolderId: string
+    public readonly trashFolderId: string
+    public readonly defaultDriveId: string
+    public readonly drivesId: string
+    public readonly downloadFolderId?: string
+    public readonly recentId?: string
+
+    constructor(rootNode: Nodes.GroupNode, params: {
+        homeFolderId: string
+        trashFolderId: string
+        defaultDriveId: string
+        drivesId: string
+        downloadFolderId?: string
+        recentId?: string
+    }) {
         super({ rootNode, expandedNodes: [rootNode.id] })
+        Object.assign(this, params)
     }
+
+    getRecentNode() {
+        return this.getNode(this.recentId)
+    }
+    getHomeNode(): Nodes.HomeNode {
+        return this.getNode(this.homeFolderId) as Nodes.HomeNode
+    }
+    getDownloadNode(): Nodes.FolderNode {
+        return this.getNode(this.downloadFolderId) as Nodes.FolderNode
+    }
+    getTrashNode(): Nodes.TrashNode {
+        return this.getNode(this.trashFolderId) as Nodes.TrashNode
+    }
+}
+
+function createTreeGroup(groupName: string, respUserDrives, respDefaultDrive) {
+
+    let homeFolderNode = new Nodes.HomeNode({
+        id: respDefaultDrive.homeFolderId,
+        groupId: respDefaultDrive.groupId,
+        parentFolderId: respDefaultDrive.driveId,
+        driveId: respDefaultDrive.driveId,
+        name: respDefaultDrive.homeFolderName,
+        children: AssetsBrowserClient.getFolderChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.homeFolderId)
+    })
+    let downloadFolderNode = new Nodes.DownloadNode({
+        id: respDefaultDrive.downloadFolderId,
+        groupId: respDefaultDrive.groupId,
+        parentFolderId: respDefaultDrive.driveId,
+        driveId: respDefaultDrive.driveId,
+        name: respDefaultDrive.downloadFolderName,
+        children: AssetsBrowserClient.getFolderChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.downloadFolderId)
+    })
+    let trashFolderNode = new Nodes.TrashNode({
+        id: 'trash',
+        groupId: respDefaultDrive.groupId,
+        driveId: respDefaultDrive.driveId,
+        name: 'Trash',
+        children: AssetsBrowserClient.getDeletedChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId)
+    })
+    let defaultDrive = new Nodes.DriveNode({
+        icon: 'fas fa-hdd',
+        id: respDefaultDrive.driveId,
+        groupId: respDefaultDrive.groupId,
+        driveId: respDefaultDrive.driveId,
+        name: respDefaultDrive.driveName,
+        children: [homeFolderNode, downloadFolderNode, trashFolderNode]
+    })
+    let userDrives = respUserDrives
+        .filter(drive => drive.id != defaultDrive.id)
+        .map((drive) => {
+            return new Nodes.DriveNode({
+                icon: 'fas fa-hdd',
+                id: drive.driveId,
+                groupId: drive.groupId,
+                driveId: drive.driveId,
+                name: drive.name,
+                children: AssetsBrowserClient.getFolderChildren$(drive.groupId, drive.driveId, drive.driveId)
+            })
+        })
+    let userGroup = new Nodes.GroupNode({
+        id: respDefaultDrive.groupId,
+        name: groupName,
+        children: [defaultDrive, ...userDrives],
+        icon: 'fas fa-user'
+    })
+
+    return new TreeGroup(userGroup, {
+        homeFolderId: homeFolderNode.id,
+        trashFolderId: trashFolderNode.id,
+        defaultDriveId: defaultDrive.id,
+        drivesId: userDrives.map(d => d.id),
+        downloadFolderId: downloadFolderNode.id
+    })
 }
 
 export class AppState {
@@ -90,9 +179,15 @@ export class AppState {
     public readonly userInfo$ = AssetsBrowserClient.getUserInfo$().pipe(
         share()
     )
-    public readonly defaultDrive$ = AssetsBrowserClient.getDefaultDrive$().pipe(
+
+    public readonly defaultUserDrive$ = this.userInfo$.pipe(
+        mergeMap(({ groups }) => {
+            let privateGrp = groups.find(grp => grp.path == 'private')
+            return AssetsBrowserClient.getDefaultDrive$(privateGrp.id)
+        }),
         share()
     )
+
     public readonly userDrives$ = this.userInfo$.pipe(
         mergeMap(({ groups }) => {
             let privateGrp = groups.find(grp => grp.path == 'private')
@@ -100,81 +195,25 @@ export class AppState {
         })
     )
 
-    userTree: TreeState
-
-    homeFolderNode: Nodes.HomeNode
-    downloadFolderNode: Nodes.DownloadNode
-    trashFolderNode: Nodes.TrashNode
-    recentNode = new Nodes.RecentNode({ name: 'Recent' })
+    //userTree: TreeGroup
+    groupsTree: { [key: string]: TreeGroup } = {}
 
     constructor() {
 
         combineLatest([
             this.userDrives$,
-            this.defaultDrive$
+            this.defaultUserDrive$
         ]).subscribe(([respUserDrives, respDefaultDrive]: [any, any]) => {
 
-            this.homeFolderNode = new Nodes.HomeNode({
-                id: respDefaultDrive.homeFolderId,
-                groupId: respDefaultDrive.groupId,
-                parentFolderId: respDefaultDrive.driveId,
-                driveId: respDefaultDrive.driveId,
-                name: respDefaultDrive.homeFolderName,
-                children: AssetsBrowserClient.getFolderChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.homeFolderId)
-            })
-            this.downloadFolderNode = new Nodes.DownloadNode({
-                id: respDefaultDrive.downloadFolderId,
-                groupId: respDefaultDrive.groupId,
-                parentFolderId: respDefaultDrive.driveId,
-                driveId: respDefaultDrive.driveId,
-                name: respDefaultDrive.downloadFolderName,
-                children: AssetsBrowserClient.getFolderChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.downloadFolderId)
-            })
-            this.trashFolderNode = new Nodes.TrashNode({
-                id: 'trash',
-                groupId: respDefaultDrive.groupId,
-                driveId: respDefaultDrive.driveId,
-                name: 'Trash',
-                children: AssetsBrowserClient.getDeletedChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId)
-            })
-            let defaultDrive = new Nodes.DriveNode({
-                icon: 'fas fa-hdd',
-                id: respDefaultDrive.driveId,
-                groupId: respDefaultDrive.groupId,
-                driveId: respDefaultDrive.driveId,
-                name: respDefaultDrive.driveName,
-                children: [this.homeFolderNode, this.downloadFolderNode, this.trashFolderNode]
-            })
-            let userDrives = respUserDrives
-                .filter(drive => drive.id != defaultDrive.id)
-                .map((drive) => {
-                    return new Nodes.DriveNode({
-                        icon: 'fas fa-hdd',
-                        id: drive.driveId,
-                        groupId: drive.groupId,
-                        driveId: drive.driveId,
-                        name: drive.name,
-                        children: AssetsBrowserClient.getFolderChildren$(drive.groupId, drive.driveId, drive.driveId)
-                    })
-                })
-            let userGroup = new Nodes.GroupNode({
-                id: respDefaultDrive.groupId,
-                name: "You",
-                children: [defaultDrive, ...userDrives],
-                icon: 'fas fa-user'
-            })
-
-            this.userTree = new TreeState({
-                rootNode: userGroup
-            })
-
-            this.flux = new FluxState(this.userTree)
-            this.story = new StoryState(this.userTree)
-            this.data = new DataState(this.userTree)
+            let tree = createTreeGroup('You', respUserDrives, respDefaultDrive)
+            this.groupsTree[respDefaultDrive.groupId] = tree
+            this.flux = new FluxState(tree)
+            this.story = new StoryState(tree)
+            this.data = new DataState(tree)
             this.allStates = [this.flux, this.story, this.data]
             this.specificActions = this.allStates.map(s => s.actions).flat()
-            this.openFolder(this.homeFolderNode)
-            this.userTree.directUpdates$.subscribe((updates) => {
+            this.openFolder(tree.getHomeNode())
+            tree.directUpdates$.subscribe((updates) => {
                 updates.forEach(update => AssetsBrowserClient.execute(update))
             })
         })
@@ -192,8 +231,19 @@ export class AppState {
         this.selectedItem$.next(item)
     }
 
-    newFolder(parentNode: Nodes.DriveNode | Nodes.FolderNode) {
+    selectGroup(group) {
+        combineLatest([
+            AssetsBrowserClient.getDefaultDrive$(group.id),
+            AssetsBrowserClient.getDrivesChildren$(group.id)
+        ]).subscribe(([defaultDrive, drives]: [any, any]) => {
+            let tree = createTreeGroup(group.elements.slice(-1)[0], drives, defaultDrive)
+            this.groupsTree[defaultDrive.groupId] = tree
+            this.openFolder(tree.getHomeNode())
+        })
+    }
 
+    newFolder(parentNode: Nodes.DriveNode | Nodes.FolderNode) {
+        let tree = this.groupsTree[parentNode.groupId]
         let childFolder = new Nodes.FutureNode({
             icon: 'fas fa-folder',
             name: 'new folder',
@@ -206,11 +256,11 @@ export class AppState {
                     parentFolderId: parentNode.id,
                     children: []
                 } as any)
-                this.userTree.replaceNode(childFolder.id, folderNode)
+                tree.replaceNode(childFolder.id, folderNode)
             },
             request: AssetsBrowserClient.newFolder$(parentNode, { name: 'new folder', folderId: uuidv4() })
         })
-        this.userTree.addChild(parentNode.id, childFolder)
+        tree.addChild(parentNode.id, childFolder)
     }
 
     run(preview: RunningApp) {
@@ -231,15 +281,15 @@ export class AppState {
     rename(node: Nodes.FolderNode | Nodes.ItemNode, newName: string) {
 
         node.removeStatus({ type: 'renaming' })
-        this.userTree.replaceAttributes(node, { name: newName })
+        this.groupsTree[node.groupId].replaceAttributes(node, { name: newName })
     }
 
     deleteFolder(node: Nodes.FolderNode) {
-        this.userTree.removeNode(node)
+        this.groupsTree[node.groupId].removeNode(node)
     }
 
     deleteItem(node: Nodes.ItemNode) {
-        this.userTree.removeNode(node)
+        this.groupsTree[node.groupId].removeNode(node)
     }
 
     purgeDrive(trashNode: Nodes.TrashNode) {

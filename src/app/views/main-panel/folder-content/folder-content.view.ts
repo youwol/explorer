@@ -1,7 +1,7 @@
 import { attr$, child$, children$, VirtualDOM } from "@youwol/flux-view";
 import { BehaviorSubject, combineLatest, Observable, Subject } from "rxjs";
 import { map, mergeMap } from "rxjs/operators";
-import { AppState } from "../../../app.state";
+import { AppState, TreeGroup } from "../../../app.state";
 import { Nodes } from "../../../data";
 import { DisplayMode } from "../main-panel.view";
 import { DetailsContentView } from "./details.view";
@@ -18,18 +18,22 @@ export class FolderContentView implements VirtualDOM {
 
     public readonly state: AppState
     public readonly folderId: string
+    public readonly groupId: string
 
     public readonly children: VirtualDOM[]
     public readonly displayMode$: Subject<DisplayMode>
 
-    constructor(params: { state: AppState, folderId: string, displayMode$: Subject<DisplayMode> }) {
+    public readonly tree: TreeGroup
+
+    constructor(params: { state: AppState, folderId: string, groupId: string, displayMode$: Subject<DisplayMode> }) {
 
         Object.assign(this, params)
-        let items$ = this.state.userTree.root$.pipe(
+        this.tree = this.state.groupsTree[this.groupId]
+        let items$ = this.tree.root$.pipe(
             map((root) => {
                 return root.id == this.folderId
                     ? root
-                    : this.state.userTree.getNode(this.folderId)
+                    : this.tree.getNode(this.folderId)
             }),
             map(node => node.children)
         )

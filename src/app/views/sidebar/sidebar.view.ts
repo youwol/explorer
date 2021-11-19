@@ -1,4 +1,4 @@
-import { attr$, child$, VirtualDOM } from "@youwol/flux-view"
+import { attr$, child$, children$, VirtualDOM } from "@youwol/flux-view"
 import { BehaviorSubject, Observable } from "rxjs"
 import { AppState } from "../../app.state"
 import { AssetsBrowserClient } from "../../assets-browser.client"
@@ -56,11 +56,23 @@ class PredefinedFolderView implements VirtualDOM {
 
 export class PredefinedFoldersView implements VirtualDOM {
 
-    children: Array<VirtualDOM>
+    children: any // Array<VirtualDOM>
 
     constructor({ state, extended$ }: { state: AppState, extended$: BehaviorSubject<boolean> }) {
-        this.children = [state.recentNode, state.homeFolderNode, state.downloadFolderNode, state.trashFolderNode]
-            .map(node => new PredefinedFolderView(state, node, extended$))
+        this.children = children$(
+            state.openFolder$.pipe(take(1)),
+            ({ folder }: { folder: Nodes.FolderNode }) => {
+                let tree = state.groupsTree[folder.groupId]
+                let nodes = [
+                    //groupData.getRecentNode(),
+                    tree.getHomeNode(),
+                    tree.getDownloadNode(),
+                    tree.getTrashNode()
+                ]
+                return nodes
+                    .map(node => new PredefinedFolderView(state, node as any, extended$))
+            }
+        )
     }
 }
 
@@ -94,6 +106,8 @@ export class GroupsView implements VirtualDOM {
     groupsExpanded$ = new BehaviorSubject(false)
     extended$: Observable<boolean>
     groups: GroupResponse[]
+    state: AppState
+
     constructor(params: {
         state: AppState,
         groups: GroupResponse[],
@@ -126,7 +140,8 @@ export class GroupsView implements VirtualDOM {
                 return {
                     class: 'my-1 fv-pointer fv-hover-bg-secondary rounded',
                     style: { paddingLeft: `${group.level * 15}px` },
-                    innerText: group.name
+                    innerText: group.name,
+                    onclick: (ev) => this.state.selectGroup(group)
                 }
             })
         }

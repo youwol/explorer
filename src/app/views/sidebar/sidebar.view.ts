@@ -170,7 +170,7 @@ export class SideBarView implements VirtualDOM {
 
         this.style = attr$(
             extended$,
-            (extanded) => extanded
+            (extended) => extended
                 ? {
                     width: '250px'
                 } : { width: 'auto' }

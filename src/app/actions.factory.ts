@@ -62,13 +62,13 @@ export let GENERIC_ACTIONS = {
         applicable: () => node instanceof Nodes.FolderNode && selection == 'direct',
         exe: () => { state.deleteFolder(node as any) }
     }),
-    /*clearTrash: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
+    clearTrash: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
         icon: 'fas fa-times',
         name: 'clear trash',
         enable: permissions.write,
         applicable: () => node instanceof Nodes.TrashNode,
-        exe: () => { state.purgeDrive(node as any) }
-    }),*/
+        exe: () => { state.purgeDrive(node as Nodes.TrashNode) }
+    }),
     newFluxProject: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
         icon: 'fas fa-sitemap',
         name: 'new app',

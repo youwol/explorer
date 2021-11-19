@@ -240,6 +240,22 @@ export class AppState {
     deleteItem(node: Nodes.ItemNode) {
         this.userTree.removeNode(node)
     }
+
+    purgeDrive(trashNode: Nodes.TrashNode) {
+
+        AssetsBrowserClient.purgeDrive$(trashNode.driveId).pipe(
+            mergeMap(() => {
+                let tree = this.groupsTree[trashNode.groupId]
+                return tree.getTrashNode().resolveChildren()
+            })
+        ).subscribe((children) => {
+
+            children.forEach((deletedNode, i) => {
+                this.groupsTree[trashNode.groupId].removeNode(deletedNode, i == children.length - 1)
+            })
+        })
+    }
+
 }
 
 

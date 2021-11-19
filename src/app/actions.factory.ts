@@ -154,6 +154,9 @@ export function getActions$(
     actionsList: ActionConstructor[]
 ): Observable<Array<Action>> {
 
+    if (item.node instanceof Nodes.FutureNode) {
+        return of([])
+    }
     if (item.node instanceof Nodes.DeletedNode)
         return of([]) // restore at some point
 

@@ -1,4 +1,4 @@
-import { uuidv4 } from "@youwol/flux-core"
+import { createObservableFromFetch, uuidv4 } from "@youwol/flux-core"
 import { AppState, SelectedItem, TreeState } from "../../app.state"
 import { AssetsBrowserClient } from "../../assets-browser.client"
 import { Nodes } from "../../data"
@@ -45,6 +45,12 @@ export class FluxState {
     constructor(public readonly userTree: TreeState) {
 
     }
+    static newFluxProject$(node: Nodes.FolderNode) {
+
+        let url = `${AssetsBrowserClient.urlBaseAssets}/flux-project/location/${node.id}`
+        let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
+        return createObservableFromFetch(request)
+    }
 
     new(parentNode: Nodes.FolderNode) {
         let uid = uuidv4()
@@ -52,7 +58,7 @@ export class FluxState {
         let node = new Nodes.FutureNode({
             name: "new project",
             icon: "fas fa-play",
-            request: AssetsBrowserClient.newFluxProject$(parentNode),
+            request: FluxState.newFluxProject$(parentNode),
             onResponse: (resp, node) => {
                 let projectNode = new Nodes.FluxProjectNode({
                     id: resp.treeId,

@@ -245,20 +245,6 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static newFluxProject$(node: Nodes.FolderNode) {
-
-        let url = `${AssetsBrowserClient.urlBaseAssets}/flux-project/location/${node.id}`
-        let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static newStory$(node: Nodes.FolderNode) {
-
-        let url = `${AssetsBrowserClient.urlBaseAssets}/story/location/${node.id}`
-        let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
     static purgeDrive$(node: Nodes.TrashNode) {
 
         let url = AssetsBrowserClient.urlBaseOrganization + `/drives/${node.driveId}/purge`
@@ -500,13 +486,6 @@ export class AssetsBrowserClient {
                 return children
             })
         ) as Observable<Array<Nodes.BrowserNode>>
-    }
-
-
-    static uploadPackage$(node: Nodes.FolderNode, file: File) {
-
-        let url = `/api/assets-gateway/assets/package/location/${node.id}?group-id=${node.groupId}`
-        return AssetsBrowserClient.upload$(url, file)
     }
 
     static dataPreview$(rawId: string): Observable<{ kind: string, content: string }> {

@@ -1,4 +1,4 @@
-import { uuidv4 } from "@youwol/flux-core"
+import { createObservableFromFetch, uuidv4 } from "@youwol/flux-core"
 import { AppState, SelectedItem, TreeState } from "../../app.state"
 import { AssetsBrowserClient } from "../../assets-browser.client"
 import { Nodes } from "../../data"
@@ -37,13 +37,20 @@ export class StoryState {
 
     }
 
+    static newStory$(node: Nodes.FolderNode) {
+
+        let url = `${AssetsBrowserClient.urlBaseAssets}/story/location/${node.id}`
+        let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
+        return createObservableFromFetch(request)
+    }
+
     new(parentNode: Nodes.FolderNode) {
         let uid = uuidv4()
         parentNode.addStatus({ type: 'request-pending', id: uid })
         let node = new Nodes.FutureNode({
             name: "new story",
             icon: "fas fa-book",
-            request: AssetsBrowserClient.newStory$(parentNode),
+            request: StoryState.newStory$(parentNode),
             onResponse: (resp, node) => {
                 parentNode.removeStatus({ type: 'request-pending', id: uid })
                 let storyNode = new Nodes.StoryNode({

@@ -240,42 +240,6 @@ export class AppState {
     deleteItem(node: Nodes.ItemNode) {
         this.userTree.removeNode(node)
     }
-
-    uploadFiles(folder: Nodes.FolderNode, input: HTMLInputElement) {
-
-        let uid = uuidv4()
-        folder.addStatus({ type: 'request-pending', id: uid })
-
-        let allProgresses = Array.from(input.files).map(file => {
-            return AssetsBrowserClient.uploadFile$(folder, file)
-        })
-        allProgresses.forEach((progress$, i) => {
-            let progressNode = new Nodes.ProgressNode({
-                name: input.files[i].name,
-                id: "progress_" + input.files[i].name,
-                progress$
-            })
-            this.userTree.addChild(folder.id, progressNode)
-        })
-        allProgresses.forEach(request => {
-            request.pipe(
-                filter(progress => progress.step == UploadStep.FINISHED)
-            ).subscribe((progress) => {
-                let uploadNode = this.userTree.getNode("progress_" + progress.fileName)
-                this.userTree.removeNode(uploadNode)
-                let child = new Nodes.DataNode({
-                    id: progress.result.treeId,
-                    driveId: folder.driveId,
-                    groupId: folder.groupId,
-                    name: progress.result.name,
-                    assetId: progress.result.assetId,
-                    rawId: progress.result.relatedId,
-                    borrowed: progress.result.borrowed,
-                })
-                this.userTree.addChild(folder.id, child)
-            })
-        })
-    }
 }
 
 

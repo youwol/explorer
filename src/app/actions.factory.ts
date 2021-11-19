@@ -115,7 +115,7 @@ export let GENERIC_ACTIONS = {
             input.setAttribute("multiple", "true")
             input.dispatchEvent(new MouseEvent('click'))
             input.onchange = (ev) => {
-                state.uploadFiles(node as Nodes.FolderNode, input)
+                state.data.import(node as Nodes.FolderNode, input)
                 input.remove()
             }
         }

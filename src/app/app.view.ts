@@ -79,7 +79,7 @@ export class AppView implements VirtualDOM {
                     new SideBarView(this.state, new BehaviorSubject(false)),
                     child$(
                         this.state.currentFolder$,
-                        (folder: Nodes.FolderNode) => new MainPanelView({ state: this.state, folder })
+                        ({ folder }: { folder: Nodes.FolderNode }) => new MainPanelView({ state: this.state, folder })
                     )
                 ]
             }

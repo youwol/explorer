@@ -42,7 +42,7 @@ export class ActionsView implements VirtualDOM {
         Object.assign(this, params)
 
         let actionsParentFolder$ = this.state.currentFolder$.pipe(
-            mergeMap((folder) => getActions$(this.state, { node: folder, selection: 'indirect' }, Object.values(GENERIC_ACTIONS)))
+            mergeMap(({ folder }) => getActions$(this.state, { node: folder, selection: 'indirect' }, Object.values(GENERIC_ACTIONS)))
         )
         let actionSelectedItem$ = this.state.selectedItem$.pipe(
             mergeMap((item) => item

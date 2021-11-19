@@ -69,18 +69,19 @@ export class AppState {
 
     public readonly selectedItem$ = new ReplaySubject<Nodes.BrowserNode>(1)
 
-    public readonly openFolder$ = new ReplaySubject<Nodes.BrowserNode>(1)
+    public readonly openFolder$ = new ReplaySubject<{ tree: TreeGroup, folder: Nodes.BrowserNode }>(1)
+
     public readonly currentFolder$ = this.openFolder$.pipe(
-        tap((folder) => console.log("Folder is open", { folder, tree: this.userTree })),
-        filter((selection) => selection.children != undefined
+        tap(({ tree, folder }) => console.log("Folder is open", { folder, tree })),
+        filter(({ folder }) => folder.children != undefined
         ),
-        mergeMap((folder) => {
-            this.userTree.getChildren(folder)
-            return this.userTree.getChildren$(folder).pipe(map(() => folder))
+        mergeMap(({ tree, folder }) => {
+            tree.getChildren(folder)
+            return tree.getChildren$(folder).pipe(map(() => ({ tree, folder })))
         }),
-        distinctUntilChanged((a, b) => a.id == b.id),
+        distinctUntilChanged((a, b) => a.folder.id == b.folder.id),
         shareReplay(1)
-    ) as Observable<Nodes.FolderNode>
+    ) as Observable<{ tree: TreeGroup, folder: Nodes.FolderNode }>
 
     public readonly viewMode$ = new BehaviorSubject<'navigation' | RunningApp>('navigation')
 
@@ -183,8 +184,8 @@ export class AppState {
         this.viewMode$.next('navigation')
     }
 
-    openFolder(folder: Nodes.BrowserNode) {
-        this.openFolder$.next(folder)
+    openFolder(folder: Nodes.FolderNode) {
+        this.openFolder$.next({ tree: this.groupsTree[folder.groupId], folder })
     }
 
     selectItem(item: Nodes.BrowserNode) {

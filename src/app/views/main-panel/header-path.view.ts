@@ -2,7 +2,7 @@ import { attr$, child$, children$, Stream$, VirtualDOM } from "@youwol/flux-view
 import { ywSpinnerView } from "@youwol/flux-youwol-essentials"
 import { BehaviorSubject, combineLatest, merge, Subject } from "rxjs"
 import { distinctUntilChanged, filter, take } from "rxjs/operators"
-import { AppState } from "../../app.state"
+import { AppState, TreeGroup } from "../../app.state"
 import { Nodes } from "../../data"
 import { ActionsView } from "./actions.view"
 import { DisplayMode } from "./main-panel.view"
@@ -64,9 +64,9 @@ export class HeaderPathView implements VirtualDOM {
                 class: 'd-flex flex-grow-1',
                 children: children$(
                     this.state.currentFolder$,
-                    (folder: Nodes.FolderNode) => {
+                    ({ tree, folder }: { tree: TreeGroup, folder: Nodes.FolderNode }) => {
 
-                        let path = this.state.userTree.reducePath(folder.id, (node) => {
+                        let path = tree.reducePath(folder.id, (node) => {
                             return node
                         })
                         let isLoading$ = merge(...path.map(n => n.status$))

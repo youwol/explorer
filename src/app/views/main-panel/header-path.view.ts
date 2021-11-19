@@ -66,7 +66,7 @@ export class HeaderPathView implements VirtualDOM {
                     this.state.currentFolder$,
                     (folder: Nodes.FolderNode) => {
 
-                        let path = this.state.homeTreeState.reducePath(folder.id, (node) => {
+                        let path = this.state.userTree.reducePath(folder.id, (node) => {
                             return node
                         })
                         let isLoading$ = merge(...path.map(n => n.status$))

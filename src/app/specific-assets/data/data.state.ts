@@ -25,7 +25,7 @@ export class DataState {
         })
     ]
 
-    constructor(public readonly homeTreeState: TreeState) {
+    constructor(public readonly userTree: TreeState) {
 
     }
 
@@ -42,14 +42,14 @@ export class DataState {
                 id: "progress_" + input.files[i].name,
                 progress$
             })
-            this.homeTreeState.addChild(folder.id, progressNode)
+            this.userTree.addChild(folder.id, progressNode)
         })
         allProgresses.forEach(request => {
             request.pipe(
                 filter(progress => progress.step == UploadStep.FINISHED)
             ).subscribe((progress) => {
-                let uploadNode = this.homeTreeState.getNode("progress_" + progress.fileName)
-                this.homeTreeState.removeNode(uploadNode)
+                let uploadNode = this.userTree.getNode("progress_" + progress.fileName)
+                this.userTree.removeNode(uploadNode)
                 let child = new Nodes.DataNode({
                     id: progress.result.treeId,
                     driveId: folder.driveId,
@@ -59,7 +59,7 @@ export class DataState {
                     rawId: progress.result.rawId,
                     borrowed: progress.result.borrowed,
                 })
-                this.homeTreeState.addChild(folder.id, child)
+                this.userTree.addChild(folder.id, child)
             })
         })
     }

@@ -33,7 +33,7 @@ export class StoryState {
         })
     ]
 
-    constructor(public readonly homeTreeState: TreeState) {
+    constructor(public readonly userTree: TreeState) {
 
     }
 
@@ -56,10 +56,10 @@ export class StoryState {
                     borrowed: false,
                 })
                 console.log("storyNode", storyNode)
-                this.homeTreeState.replaceNode(node, storyNode)
+                this.userTree.replaceNode(node, storyNode)
             }
         })
-        this.homeTreeState.addChild(parentNode.id, node)
+        this.userTree.addChild(parentNode.id, node)
     }
 
     read(node: Nodes.StoryNode) {

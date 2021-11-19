@@ -25,11 +25,11 @@ export class FolderContentView implements VirtualDOM {
     constructor(params: { state: AppState, folderId: string, displayMode$: Subject<DisplayMode> }) {
 
         Object.assign(this, params)
-        let items$ = this.state.homeTreeState.root$.pipe(
+        let items$ = this.state.userTree.root$.pipe(
             map((root) => {
                 return root.id == this.folderId
                     ? root
-                    : this.state.homeTreeState.getNode(this.folderId)
+                    : this.state.userTree.getNode(this.folderId)
             }),
             map(node => node.children)
         )

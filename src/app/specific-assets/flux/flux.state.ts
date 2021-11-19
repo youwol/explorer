@@ -42,7 +42,7 @@ export class FluxState {
         }),
     ]
 
-    constructor(public readonly homeTreeState: TreeState) {
+    constructor(public readonly userTree: TreeState) {
 
     }
 
@@ -63,11 +63,10 @@ export class FluxState {
                     rawId: resp.relatedId,
                     borrowed: false,
                 })
-                console.log("projectNode", projectNode)
-                this.homeTreeState.replaceNode(node, projectNode)
+                this.userTree.replaceNode(node, projectNode)
             }
         })
-        this.homeTreeState.addChild(parentNode.id, node)
+        this.userTree.addChild(parentNode.id, node)
     }
 
     construct(node: Nodes.FluxProjectNode) {

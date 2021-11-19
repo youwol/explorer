@@ -1,5 +1,5 @@
 import { uuidv4 } from '@youwol/flux-core'
-import { BehaviorSubject, from, Observable, ReplaySubject, Subject } from "rxjs"
+import { BehaviorSubject, combineLatest, from, Observable, ReplaySubject, Subject } from "rxjs"
 import { distinctUntilChanged, filter, map, mergeMap, share, shareReplay, tap } from 'rxjs/operators'
 import { AssetsBrowserClient } from './assets-browser.client'
 import { Asset, Nodes, UploadStep } from './data'
@@ -11,6 +11,7 @@ import { RunningApp } from './views/main-panel/running-app.view'
 import { StoryState } from './specific-assets/story/story.state'
 import { Action, ActionConstructor } from './actions.factory'
 import { DataState } from './specific-assets/data/data.state'
+import { MarketplaceApp } from './views/market-place/market-place.view'
 
 
 
@@ -65,16 +66,17 @@ export class AppState {
     public specificActions: ActionConstructor[]
 
     public readonly topBannerState = new YouwolBannerState({ cmEditorModule$: fetchCodeMirror$() })
-    public readonly selectedDrive$ = new Subject<Nodes.DriveNode>()
+
     public readonly selectedItem$ = new ReplaySubject<Nodes.BrowserNode>(1)
 
     public readonly openFolder$ = new ReplaySubject<Nodes.BrowserNode>(1)
     public readonly currentFolder$ = this.openFolder$.pipe(
-        tap((f) => console.log("Folder is open", f)),
-        filter((selection) => selection instanceof Nodes.FolderNode),
+        tap((folder) => console.log("Folder is open", { folder, tree: this.userTree })),
+        filter((selection) => selection.children != undefined
+        ),
         mergeMap((folder) => {
-            this.homeTreeState.getChildren(folder)
-            return this.homeTreeState.getChildren$(folder).pipe(map(() => folder))
+            this.userTree.getChildren(folder)
+            return this.userTree.getChildren$(folder).pipe(map(() => folder))
         }),
         distinctUntilChanged((a, b) => a.id == b.id),
         shareReplay(1)
@@ -82,7 +84,7 @@ export class AppState {
 
     public readonly viewMode$ = new BehaviorSubject<'navigation' | RunningApp>('navigation')
 
-    public readonly runningApplications$ = new BehaviorSubject<RunningApp[]>([])
+    public readonly runningApplications$ = new BehaviorSubject<RunningApp[]>([new MarketplaceApp({})])
 
     public readonly userInfo$ = AssetsBrowserClient.getUserInfo$().pipe(
         share()
@@ -90,48 +92,88 @@ export class AppState {
     public readonly defaultDrive$ = AssetsBrowserClient.getDefaultDrive$().pipe(
         share()
     )
+    public readonly userDrives$ = this.userInfo$.pipe(
+        mergeMap(({ groups }) => {
+            let privateGrp = groups.find(grp => grp.path == 'private')
+            return AssetsBrowserClient.getDrivesChildren$(privateGrp.id)
+        })
+    )
+
+    userTree: TreeState
 
     homeFolderNode: Nodes.HomeNode
-    homeTreeState: TreeState
     downloadFolderNode: Nodes.DownloadNode
     trashFolderNode: Nodes.TrashNode
     recentNode = new Nodes.RecentNode({ name: 'Recent' })
 
     constructor() {
 
-        this.defaultDrive$.subscribe((resp) => {
+        combineLatest([
+            this.userDrives$,
+            this.defaultDrive$
+        ]).subscribe(([respUserDrives, respDefaultDrive]: [any, any]) => {
+
             this.homeFolderNode = new Nodes.HomeNode({
-                id: resp.homeFolderId,
-                groupId: resp.groupId,
-                parentFolderId: resp.driveId,
-                driveId: resp.driveId,
-                name: resp.homeFolderName,
-                children: AssetsBrowserClient.getFolderChildren$(resp.groupId, resp.driveId, resp.homeFolderId)
+                id: respDefaultDrive.homeFolderId,
+                groupId: respDefaultDrive.groupId,
+                parentFolderId: respDefaultDrive.driveId,
+                driveId: respDefaultDrive.driveId,
+                name: respDefaultDrive.homeFolderName,
+                children: AssetsBrowserClient.getFolderChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.homeFolderId)
             })
-            this.homeTreeState = new TreeState({ rootNode: this.homeFolderNode })
-            this.flux = new FluxState(this.homeTreeState)
-            this.story = new StoryState(this.homeTreeState)
-            this.data = new DataState(this.homeTreeState)
-            this.allStates = [this.flux, this.story, this.data]
-            this.specificActions = this.allStates.map(s => s.actions).flat()
             this.downloadFolderNode = new Nodes.DownloadNode({
-                id: resp.downloadFolderId,
-                groupId: resp.groupId,
-                parentFolderId: resp.driveId,
-                driveId: resp.driveId,
-                name: resp.downloadFolderName,
-                children: AssetsBrowserClient.getFolderChildren$(resp.groupId, resp.driveId, resp.homeFolderId)
+                id: respDefaultDrive.downloadFolderId,
+                groupId: respDefaultDrive.groupId,
+                parentFolderId: respDefaultDrive.driveId,
+                driveId: respDefaultDrive.driveId,
+                name: respDefaultDrive.downloadFolderName,
+                children: AssetsBrowserClient.getFolderChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.downloadFolderId)
             })
             this.trashFolderNode = new Nodes.TrashNode({
                 id: 'trash',
-                groupId: resp.groupId,
-                driveId: resp.driveId,
+                groupId: respDefaultDrive.groupId,
+                driveId: respDefaultDrive.driveId,
                 name: 'Trash',
-                children: AssetsBrowserClient.getFolderChildren$(resp.groupId, resp.driveId, resp.homeFolderId)
+                children: AssetsBrowserClient.getDeletedChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId)
             })
+            let defaultDrive = new Nodes.DriveNode({
+                icon: 'fas fa-hdd',
+                id: respDefaultDrive.driveId,
+                groupId: respDefaultDrive.groupId,
+                driveId: respDefaultDrive.driveId,
+                name: respDefaultDrive.driveName,
+                children: [this.homeFolderNode, this.downloadFolderNode, this.trashFolderNode]
+            })
+            let userDrives = respUserDrives
+                .filter(drive => drive.id != defaultDrive.id)
+                .map((drive) => {
+                    return new Nodes.DriveNode({
+                        icon: 'fas fa-hdd',
+                        id: drive.driveId,
+                        groupId: drive.groupId,
+                        driveId: drive.driveId,
+                        name: drive.name,
+                        children: AssetsBrowserClient.getFolderChildren$(drive.groupId, drive.driveId, drive.driveId)
+                    })
+                })
+            let userGroup = new Nodes.GroupNode({
+                id: respDefaultDrive.groupId,
+                name: "You",
+                children: [defaultDrive, ...userDrives],
+                icon: 'fas fa-user'
+            })
+            this.flux = new FluxState(this.userTree)
+            this.story = new StoryState(this.userTree)
+            this.data = new DataState(this.userTree)
+            this.allStates = [this.flux, this.story, this.data]
+            this.specificActions = this.allStates.map(s => s.actions).flat()
+
+            this.userTree = new TreeState({
+                rootNode: userGroup
+            })
+
             this.openFolder(this.homeFolderNode)
-            this.homeTreeState.directUpdates$.subscribe((updates) => {
-                console.log("Got updates", updates)
+            this.userTree.directUpdates$.subscribe((updates) => {
                 updates.forEach(update => AssetsBrowserClient.execute(update))
             })
         })
@@ -159,7 +201,7 @@ export class AppState {
             parentFolderId: parentNode.id,
             children: []
         } as any)
-        this.homeTreeState.addChild(parentNode.id, childFolder)
+        this.userTree.addChild(parentNode.id, childFolder)
     }
 
     run(preview: RunningApp) {
@@ -180,15 +222,15 @@ export class AppState {
     rename(node: Nodes.FolderNode | Nodes.ItemNode, newName: string) {
 
         node.removeStatus({ type: 'renaming' })
-        this.homeTreeState.replaceAttributes(node, { name: newName })
+        this.userTree.replaceAttributes(node, { name: newName })
     }
 
     deleteFolder(node: Nodes.FolderNode) {
-        this.homeTreeState.removeNode(node)
+        this.userTree.removeNode(node)
     }
 
     deleteItem(node: Nodes.ItemNode) {
-        this.homeTreeState.removeNode(node)
+        this.userTree.removeNode(node)
     }
 
     uploadFiles(folder: Nodes.FolderNode, input: HTMLInputElement) {
@@ -205,14 +247,14 @@ export class AppState {
                 id: "progress_" + input.files[i].name,
                 progress$
             })
-            this.homeTreeState.addChild(folder.id, progressNode)
+            this.userTree.addChild(folder.id, progressNode)
         })
         allProgresses.forEach(request => {
             request.pipe(
                 filter(progress => progress.step == UploadStep.FINISHED)
             ).subscribe((progress) => {
-                let uploadNode = this.homeTreeState.getNode("progress_" + progress.fileName)
-                this.homeTreeState.removeNode(uploadNode)
+                let uploadNode = this.userTree.getNode("progress_" + progress.fileName)
+                this.userTree.removeNode(uploadNode)
                 let child = new Nodes.DataNode({
                     id: progress.result.treeId,
                     driveId: folder.driveId,
@@ -222,7 +264,7 @@ export class AppState {
                     rawId: progress.result.relatedId,
                     borrowed: progress.result.borrowed,
                 })
-                this.homeTreeState.addChild(folder.id, child)
+                this.userTree.addChild(folder.id, child)
             })
         })
     }

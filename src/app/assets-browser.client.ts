@@ -456,7 +456,7 @@ export class AssetsBrowserClient {
 
                 return drives.map((drive: Drive) => {
                     return new Nodes.DriveNode({
-                        id: drive.driveId, groupId: groupId, name: drive.name, driveId: drive.driveId,
+                        id: drive.driveId, groupId: groupId, name: drive.name, driveId: drive.driveId, icon: 'fas fa-hdd',
                         children: AssetsBrowserClient.getFolderChildren$(groupId, drive.driveId, drive.driveId)
                     })
                 })
@@ -485,7 +485,9 @@ export class AssetsBrowserClient {
                     .map(({ id, path }) => {
 
                         return new Nodes.GroupNode({
-                            id: id, name: path == "private" ? "private" : path.slice(pathParent.length + 1),
+                            id: id,
+                            name: path == "private" ? "" : path.slice(pathParent.length + 1),
+                            icon: path == "private" ? "fas fa-user" : "fas fa-users",
                             children: AssetsBrowserClient.getDrivesChildren$(id).pipe(
                                 mergeMap((drives) => {
                                     let children$ = AssetsBrowserClient.getGroupsChildren$(path).pipe(
@@ -612,18 +614,6 @@ export class AssetsBrowserClient {
 
         let request = new Request(`/api/assets-gateway/raw/package/metadata/${rawId}`, { headers: AssetsBrowserClient.headers })
 
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static importFluxPacks$(node: Nodes.FolderNode, assets: Array<Asset>) {
-
-        let body = {
-            groupId: node.groupId,
-            folderId: node.id,
-            assetIds: assets.map(asset => asset.assetId)
-        }
-        let request = new Request(`/api/assets-gateway/flux-packs/import`,
-            { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
         return FluxLibCore.createObservableFromFetch(request)
     }
 

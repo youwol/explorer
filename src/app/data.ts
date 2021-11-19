@@ -129,9 +129,9 @@ export namespace Nodes {
         name: string
         groupId: string
 
-        constructor({ id, name, children }: { id: string, name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
-            super({ id, name, children })
-            this.name = name
+        constructor(params: { id: string, name: string, icon: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
+            super(params)
+            Object.assign(this, params)
         }
     }
     export class DriveNode extends BrowserNode {
@@ -140,12 +140,10 @@ export namespace Nodes {
         groupId: string
         driveId: string
 
-        constructor({ id, groupId, driveId, name, children }:
-            { id: string, groupId: string, driveId: string, name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
-            super({ id, name, children })
-            this.name = name
-            this.driveId = driveId
-            this.groupId = groupId
+        constructor(params:
+            { id: string, groupId: string, driveId: string, name: string, icon: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
+            super(params)
+            Object.assign(this, params)
         }
 
     }
@@ -178,7 +176,7 @@ export namespace Nodes {
 
         constructor(params:
             { id: string, groupId: string, parentFolderId: string, driveId: string, name: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
-            super({ ...params, icon: "fas fa-download" })
+            super({ ...params, icon: "fas fa-shopping-cart" })
         }
     }
     export class RecentNode extends BrowserNode {
@@ -192,7 +190,7 @@ export namespace Nodes {
     export abstract class ItemNode extends BrowserNode {
 
         name: string
-        icon: "fas fa-file"
+        icon = "fas fa-file"
         groupId: string
         driveId: string
         rawId: string
@@ -313,6 +311,7 @@ export namespace Nodes {
 
     export class DataNode extends ItemNode {
         kind = "data"
+        icon = "fas fa-database"
         constructor({ id, groupId, name, driveId, assetId, rawId, borrowed }:
             {
                 id: string, groupId: string, driveId: string, name: string,

@@ -193,14 +193,22 @@ export class AppState {
 
     newFolder(parentNode: Nodes.DriveNode | Nodes.FolderNode) {
 
-        let childFolder = new Nodes.FolderNode({
-            groupId: parentNode.groupId,
-            driveId: parentNode.driveId,
+        let childFolder = new Nodes.FutureNode({
+            icon: 'fas fa-folder',
             name: 'new folder',
-            id: uuidv4(),
-            parentFolderId: parentNode.id,
-            children: []
-        } as any)
+            onResponse: (resp) => {
+                let folderNode = new Nodes.FolderNode({
+                    groupId: parentNode.groupId,
+                    driveId: parentNode.driveId,
+                    name: 'new folder',
+                    id: resp.folderId,
+                    parentFolderId: parentNode.id,
+                    children: []
+                } as any)
+                this.userTree.replaceNode(childFolder.id, folderNode)
+            },
+            request: AssetsBrowserClient.newFolder$(parentNode, { name: 'new folder', folderId: uuidv4() })
+        })
         this.userTree.addChild(parentNode.id, childFolder)
     }
 

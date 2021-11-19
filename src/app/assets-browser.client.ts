@@ -53,7 +53,7 @@ export class Item {
 let debugDelay = 1000
 
 let databaseActionsFactory = {
-    addFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+    /*addFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
         when: () => {
             return update.command instanceof ImmutableTree.AddChildCommand
                 && update.addedNodes.length == 1
@@ -71,7 +71,7 @@ let databaseActionsFactory = {
                     cmd.parentNode.removeStatus({ type: 'request-pending', id: uid })
                 })
         }
-    }),
+    }),*/
     renameFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
         when: () => {
             return update.command instanceof ImmutableTree.ReplaceAttributesCommand

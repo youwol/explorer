@@ -154,7 +154,7 @@ export function getActions$(
     actionsList: ActionConstructor[]
 ): Observable<Array<Action>> {
 
-    if (item.node instanceof Nodes.FutureNode) {
+    if (item.node instanceof Nodes.FutureNode || item.node instanceof Nodes.ProgressNode) {
         return of([])
     }
     if (item.node instanceof Nodes.DeletedNode)

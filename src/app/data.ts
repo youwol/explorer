@@ -132,6 +132,7 @@ export namespace Nodes {
         constructor(params: { id: string, name: string, icon: string, children?: Array<BrowserNode> | Observable<Array<BrowserNode>> }) {
             super(params)
             Object.assign(this, params)
+            this.groupId = params.id
         }
     }
 

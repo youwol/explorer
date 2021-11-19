@@ -30,6 +30,7 @@ export class DetailsContentView {
                 children: [
                     { innerText: 'Name', class: 'px-2 col-sm text-center' },
                     { innerText: 'actions', class: 'px-2 col-sm text-center' },
+                    { innerText: 'permissions', class: 'px-2 col-sm text-center' },
                     { innerText: 'Record id', class: 'px-2 col-sm text-center' },
                     { innerText: 'URL', class: 'px-2 col-sm text-center' }
                 ]
@@ -63,6 +64,7 @@ export class DetailsContentView {
                             children: [
                                 { class: 'col-sm', children: [new RenamableItemView({ state: this.state, item })] },
                                 this.cellActionsView(item),
+                                this.cellPermissionsView(item),
                                 this.cellView(treeId),
                                 this.cellView(url),
                             ]
@@ -95,6 +97,27 @@ export class DetailsContentView {
             onclick: () => action.exe()
         }
     }
+
+    cellPermissionsView(item) {
+
+        return {
+            class: 'col-sm',
+            children: [
+                {
+                    class: 'd-flex align-items-center justify-content-center w-100 h-100 my-auto mx-auto',
+                    children: [
+                        {
+                            class: 'fas fa-glasses fv-text-success mx-1'
+                        },
+                        {
+                            class: 'fas fa-tools fv-text-success mx-1'
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
     cellView(name: string, icon: string = ""): VirtualDOM {
 
         return {

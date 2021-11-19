@@ -1,7 +1,7 @@
 import { uuidv4 } from "@youwol/flux-core"
 import { BehaviorSubject } from "rxjs"
 import { filter } from "rxjs/operators"
-import { AppState, SelectedItem, TreeState } from "../../app.state"
+import { AppState, SelectedItem, TreeGroup } from "../../app.state"
 import { AssetsBrowserClient } from "../../assets-browser.client"
 import { Nodes, progressMessage, UploadStep } from "../../data"
 import { DataApp } from "./data.view"
@@ -26,7 +26,7 @@ export class DataState {
         })
     ]
 
-    constructor(public readonly userTree: TreeState) {
+    constructor(public readonly userTree: TreeGroup) {
     }
 
     static uploadFile$(node: Nodes.FolderNode, file: File) {

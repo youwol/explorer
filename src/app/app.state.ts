@@ -50,7 +50,7 @@ function validFileType(file) {
 
 export type SelectedItem = { node: Nodes.BrowserNode, selection: 'direct' | 'indirect' }
 
-export class TreeState extends ImmutableTree.State<Nodes.BrowserNode> {
+export class TreeGroup extends ImmutableTree.State<Nodes.BrowserNode> {
 
     constructor({ rootNode }: { rootNode: Nodes.BrowserNode }) {
         super({ rootNode, expandedNodes: [rootNode.id] })

@@ -1,5 +1,5 @@
 import { createObservableFromFetch, uuidv4 } from "@youwol/flux-core"
-import { AppState, SelectedItem, TreeState } from "../../app.state"
+import { AppState, SelectedItem, TreeGroup } from "../../app.state"
 import { AssetsBrowserClient } from "../../assets-browser.client"
 import { Nodes } from "../../data"
 import { StoryApp } from "./story.view"
@@ -33,7 +33,7 @@ export class StoryState {
         })
     ]
 
-    constructor(public readonly userTree: TreeState) {
+    constructor(public readonly userTree: TreeGroup) {
 
     }
 

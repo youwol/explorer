@@ -26,7 +26,7 @@ class RunningAppView implements VirtualDOM {
                 innerText: app.title
             }
         ]
-        this.onclick = () => state.run(app)
+        this.onclick = () => state.focus(app)
     }
 }
 

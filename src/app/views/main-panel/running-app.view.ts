@@ -1,110 +1,61 @@
-import { attr$, child$, HTMLElement$, VirtualDOM } from "@youwol/flux-view";
-import { BehaviorSubject, Observable, ReplaySubject } from "rxjs";
-import { AppState } from "../../app.state";
-import { Nodes } from "../../data";
+import { attr$, HTMLElement$, VirtualDOM } from "@youwol/flux-view";
+import { Observable, ReplaySubject, Subject } from "rxjs";
+import { AppState } from "../../app.state"
 
 
 export class RunningApp {
-    title: string
-    icon: string
-    headerView: VirtualDOM
-    item: Nodes.ItemNode
-    appURL$: Observable<string>
-    public readonly iframe$ = new ReplaySubject<HTMLIFrameElement>()
-}
 
-
-export class HeaderRunningApp implements VirtualDOM {
-
-    public readonly class = "w-100 d-flex p-2 fv-bg-background-alt justify-content-center align-items-center"
-    public readonly children: VirtualDOM[]
     public readonly state: AppState
-    style = {
-        height: '50px'
-    }
-    constructor(params: { state: AppState }) {
+    public readonly instanceId: string
+    public readonly title: string
+    public readonly icon: string
+    public readonly appURL$: Observable<string>
+    public readonly topBannerActions$ = new ReplaySubject<VirtualDOM>(1)
+    public readonly iframe$ = new ReplaySubject<HTMLIFrameElement>()
+
+    public readonly view: VirtualDOM
+
+    htmlElement: HTMLElement
+    constructor(params: {
+        state: AppState,
+        instanceId: string,
+        title: string,
+        icon: string,
+        appURL$: Observable<string>
+    }) {
         Object.assign(this, params)
-
-        this.children = [
-            child$(this.state.viewMode$, (d) => d == 'navigation'
-                ? {}
-                : this.content(d)
-            )
-        ]
-    }
-
-    content(runningApp: RunningApp) {
-        let baseClass = 'fas my-auto fv-pointer fv-hover-text-secondary mx-2'
-        let fullScreen$ = new BehaviorSubject<false | HTMLIFrameElement>(false)
-
-        return {
-            class: 'd-flex h-100',
+        this.view = {
+            style: {
+                border: 'thick double'
+            },
+            class: attr$(
+                this.state.runningApplication$,
+                (app) => app && app.instanceId == this.instanceId
+                    ? 'h-100 w-100 d-flex'
+                    : 'd-none'
+            ),
             children: [
-                runningApp.headerView,
                 {
-                    class: `${baseClass} fa-external-link-alt`,
-                    onclick: () => this.state.close(runningApp)
-                },
-                {
-                    class: `${baseClass} fa-expand`,
-                    onclick: () => runningApp.iframe$.subscribe((elem) => {
-                        fullScreen$.next(elem)
-                    }),
-                },
-                {
-                    class: `${baseClass} fa-times`,
-                    onclick: () => this.state.close(runningApp)
-                },
-                {
-                    class: `${baseClass} fa-window-minimize`,
-                    onclick: () => {
-                        this.state.persistApplication(runningApp)
-                        this.state.toggleNavigationMode()
+                    tag: 'iframe',
+                    width: '100%',
+                    height: '100%',
+                    src: attr$(
+                        this.appURL$,
+                        (url) => url
+                    ),
+                    connectedCallback: (elem: HTMLElement$ & HTMLIFrameElement) => {
+                        console.log("Iframe application created")
+                        this.iframe$.next(elem)
                     }
                 }
             ],
-            connectedCallback: (elem: HTMLElement$) => {
-                elem.ownSubscriptions(
-                    fullScreen$.subscribe((maybeIFrame: false | HTMLIFrameElement) => {
-                        if (!maybeIFrame) {
-                            document.exitFullscreen().catch((e) => { })
-                            return
-                        }
-                        maybeIFrame.requestFullscreen()
-                    })
-                )
+            connectedCallback: (elem: HTMLElement) => {
+                this.htmlElement = elem
             }
         }
     }
-}
 
-
-export class ContentRunningApp implements VirtualDOM {
-
-    public readonly class = 'h-100 w-100 d-flex'
-    public readonly style = {
-        border: 'thick double'
-    }
-    public readonly children: VirtualDOM[]
-    public readonly runningApp: RunningApp
-
-    constructor(params: {
-        runningApp: RunningApp
-    }) {
-        Object.assign(this, params)
-        this.children = [
-            {
-                tag: 'iframe',
-                width: '100%',
-                height: '100%',
-                src: attr$(
-                    this.runningApp.appURL$,
-                    (url) => url
-                ),
-                connectedCallback: (elem: HTMLElement$ & HTMLIFrameElement) => {
-                    this.runningApp.iframe$.next(elem)
-                }
-            }
-        ]
+    terminateInstance() {
+        this.htmlElement.remove()
     }
 }

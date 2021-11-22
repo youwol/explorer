@@ -1,17 +1,16 @@
 import { uuidv4 } from '@youwol/flux-core'
-import { BehaviorSubject, combineLatest, from, Observable, ReplaySubject, Subject } from "rxjs"
+import { BehaviorSubject, combineLatest, from, Observable, of, ReplaySubject } from "rxjs"
 import { distinctUntilChanged, filter, map, mergeMap, share, shareReplay, tap } from 'rxjs/operators'
 import { AssetsBrowserClient } from './assets-browser.client'
-import { Asset, Nodes, UploadStep } from './data'
+import { Nodes } from './data'
 import { YouwolBannerState } from "@youwol/flux-youwol-essentials"
 import { install } from '@youwol/cdn-client'
 import { ImmutableTree } from '@youwol/fv-tree'
 import { FluxState } from './specific-assets/flux/flux.state'
 import { RunningApp } from './views/main-panel/running-app.view'
 import { StoryState } from './specific-assets/story/story.state'
-import { Action, ActionConstructor } from './actions.factory'
 import { DataState } from './specific-assets/data/data.state'
-import { MarketplaceApp } from './views/market-place/market-place.view'
+import { VirtualDOM } from '@youwol/flux-view'
 
 
 
@@ -146,13 +145,12 @@ function createTreeGroup(groupName: string, respUserDrives, respDefaultDrive) {
     })
 }
 
+
 export class AppState {
 
     public flux: FluxState
     public story: StoryState
     public data: DataState
-    public allStates: { NodeType, getApp, actions }[]
-    public specificActions: ActionConstructor[]
 
     public readonly topBannerState = new YouwolBannerState({ cmEditorModule$: fetchCodeMirror$() })
 
@@ -172,9 +170,10 @@ export class AppState {
         shareReplay(1)
     ) as Observable<{ tree: TreeGroup, folder: Nodes.FolderNode }>
 
-    public readonly viewMode$ = new BehaviorSubject<'navigation' | RunningApp>('navigation')
+    //public readonly viewMode$ = new BehaviorSubject<'navigation' | RunningApp>('navigation')
 
-    public readonly runningApplications$ = new BehaviorSubject<RunningApp[]>([new MarketplaceApp({})])
+    public readonly runningApplication$ = new BehaviorSubject<RunningApp>(undefined)
+    public readonly runningApplications$ = new BehaviorSubject<RunningApp[]>([])
 
     public readonly userInfo$ = AssetsBrowserClient.getUserInfo$().pipe(
         share()
@@ -210,17 +209,17 @@ export class AppState {
             this.flux = new FluxState(tree)
             this.story = new StoryState(tree)
             this.data = new DataState(tree)
-            this.allStates = [this.flux, this.story, this.data]
-            this.specificActions = this.allStates.map(s => s.actions).flat()
             this.openFolder(tree.getHomeNode())
             tree.directUpdates$.subscribe((updates) => {
                 updates.forEach(update => AssetsBrowserClient.execute(update))
             })
         })
-    }
-
-    toggleNavigationMode() {
-        this.viewMode$.next('navigation')
+        window['@youwol/os'] = this
+        this.createInstance({
+            icon: "fas fa-shopping-cart",
+            title: "Market place",
+            appURL: `/ui/exhibition-halls/`
+        })
     }
 
     openFolder(folder: Nodes.FolderNode) {
@@ -263,16 +262,52 @@ export class AppState {
         tree.addChild(parentNode.id, childFolder)
     }
 
-    run(preview: RunningApp) {
-        this.viewMode$.next(preview)
+    createInstance(appData: {
+        icon: string,
+        title: string,
+        appURL: string
+    }) {
+        let instanceId = uuidv4()
+        let url = appData.appURL.endsWith('/')
+            ? appData.appURL + "?instance-id=" + instanceId
+            : appData.appURL + "&instance-id=" + instanceId
+        let app = new RunningApp({
+            state: this,
+            instanceId,
+            icon: appData.icon,
+            title: appData.title,
+            appURL$: of(url)
+        })
+        console.log("Instance created", instanceId, app)
+        this.runningApplications$.next([...this.runningApplications$.getValue(), app])
+        return app
     }
 
-    close(preview: RunningApp) {
-        this.runningApplications$.next(this.runningApplications$.getValue().filter(d => d != preview))
-        this.viewMode$.next('navigation')
+
+    focus(app: RunningApp) {
+        console.log("Instance focused", app.instanceId, app)
+        this.runningApplication$.next(app)
     }
 
-    persistApplication(preview: RunningApp) {
+    toggleNavigationMode() {
+        this.runningApplication$.next(undefined)
+    }
+
+    setTopBannerViews(appId: string, { actionsView, badgesView }: { actionsView: VirtualDOM, badgesView: VirtualDOM }) {
+        console.log("Set top banner view", appId, { actionsView, badgesView })
+        let app = this.runningApplications$.getValue().find(app => app.instanceId === appId)
+        app.topBannerActions$.next(actionsView)
+    }
+
+    close(app: RunningApp) {
+        app.terminateInstance()
+        this.runningApplications$.next(this.runningApplications$.getValue().filter(d => d != app))
+        this.runningApplication$.next(undefined)
+    }
+
+    minimize(preview: RunningApp) {
+        console.log("Minimize")
+        this.runningApplication$.next(undefined)
         if (this.runningApplications$.getValue().includes(preview))
             return
         this.runningApplications$.next([...this.runningApplications$.getValue(), preview])

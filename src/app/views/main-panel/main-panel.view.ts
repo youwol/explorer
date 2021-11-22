@@ -1,12 +1,11 @@
-import { attr$, child$, children$, Stream$, VirtualDOM } from "@youwol/flux-view";
+import { attr$, child$, childrenAppendOnly$, VirtualDOM } from "@youwol/flux-view";
 import { BehaviorSubject } from "rxjs";
-import { distinctUntilChanged, filter } from "rxjs/operators";
-import { AppState, SelectedItem } from "../../app.state";
+import { filter, map } from "rxjs/operators";
+import { AppState } from "../../app.state";
 import { Nodes } from "../../data";
-import { ActionsView } from "./actions.view";
 import { FolderContentView } from "./folder-content/folder-content.view";
 import { HeaderPathView } from "./header-path.view";
-import { ContentRunningApp, HeaderRunningApp, RunningApp } from "./running-app.view";
+import { RunningApp } from "./running-app.view";
 import { TerminalView } from "./terminal/terminal.view";
 
 
@@ -26,25 +25,20 @@ export class MainPanelView implements VirtualDOM {
 
     public readonly displayMode$ = new BehaviorSubject<DisplayMode>('details')
 
+    cache = {}
+
     constructor(params: { state: AppState, folder: Nodes.FolderNode }) {
         Object.assign(this, params)
 
         console.log("MainPanelView")
         this.children = [
             {
-                class: attr$(this.state.viewMode$,
-                    (mode) => mode == 'navigation' ? 'w-100 d-flex' : 'd-none'
+                class: attr$(
+                    this.state.runningApplication$,
+                    (app) => app == undefined ? 'w-100 d-flex' : 'd-none'
                 ),
                 children: [
                     new HeaderPathView({ state: this.state, displayMode$: this.displayMode$ }),
-                ]
-            },
-            {
-                class: attr$(this.state.viewMode$,
-                    (mode) => mode == 'navigation' ? 'd-none' : 'w-100 d-flex'
-                ),
-                children: [
-                    new HeaderRunningApp({ state: this.state })
                 ]
             },
             {
@@ -52,26 +46,31 @@ export class MainPanelView implements VirtualDOM {
                 style: { minHeight: '0px' },
                 children: [
                     {
-                        class: attr$(this.state.viewMode$,
-                            (mode) => mode == 'navigation' ? 'h-100 d-flex' : 'd-none'
+                        class: attr$(
+                            this.state.runningApplication$,
+                            (app) => app == undefined ? 'h-100 d-flex' : 'd-none'
                         ),
                         children: [
                             new FolderContentView({ state: this.state, folderId: this.folder.id, groupId: this.folder.groupId, displayMode$: this.displayMode$ })
                         ]
                     },
                     {
-                        class: attr$(this.state.viewMode$,
-                            (mode) => mode == 'navigation' ? 'd-none' : 'h-100 d-flex'
+                        class: attr$(
+                            this.state.runningApplication$,
+                            (app) => app == undefined ? 'd-none' : 'h-100 d-flex'
                         ),
-                        style: {
-                            border: 'thick double'
-                        },
-                        children: [
-                            child$(
-                                this.state.viewMode$.pipe(filter(mode => mode != 'navigation')),
-                                (runningApp: RunningApp) => new ContentRunningApp({ runningApp })
-                            )
-                        ]
+                        children: childrenAppendOnly$(
+                            this.state.runningApplication$.pipe(
+                                filter(app => app && this.cache[app.instanceId] == undefined),
+                                map(app => [app])
+                            ),
+                            (runningApp: RunningApp) => {
+                                let view = runningApp.view
+                                this.cache[runningApp.instanceId] = view
+                                return view
+                            }
+                        )
+
                     },
                 ]
             },

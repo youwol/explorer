@@ -31,7 +31,7 @@ class RunningAppView implements VirtualDOM {
 }
 
 /**
- * Top banner of the application
+ * Regular top banner of the application (no application running)
  */
 export class TopBannerView extends YouwolBannerView {
 
@@ -62,6 +62,69 @@ export class TopBannerView extends YouwolBannerView {
     }
 }
 
+
+/**
+ * Top banner when an application is running
+ */
+export class RunningAppTopBannerView extends YouwolBannerView {
+
+    constructor(state: AppState, app: RunningApp) {
+
+        let baseClass = 'fas my-auto fv-pointer fv-hover-text-secondary mx-2'
+        super({
+            state: state.topBannerState,
+            customActionsView: {
+                class: 'my-auto d-flex justify-content-between w-100',
+                children: [
+                    {
+                        class: 'd-flex flex-align-center',
+                        children: [
+                            {
+                                class: 'border-bottom px-2 mx-3 fv-text-focus',
+                                style: {
+                                    fontFamily: 'serif',
+                                    fontSize: 'x-large'
+                                },
+                                innerText: app.title
+                            },
+                            {
+                                class: 'd-flex flex-column align-items-center',
+                                children: [
+                                    {
+                                        class: `${baseClass} fa-times`,
+                                        onclick: () => state.close(app),
+                                    },
+                                    {
+                                        class: `${baseClass} fa-window-minimize`,
+                                        onclick: () => state.minimize(app),
+                                    }
+                                ]
+                            }]
+                    },
+                    {
+                        class: 'flex-grow-1 my-auto',
+                        children: [
+                            child$(
+                                app.topBannerActions$,
+                                (vDOM) => {
+                                    console.log("Insert to-banner custom actions", vDOM)
+                                    return vDOM
+                                }
+                            )
+                        ]
+                    }
+                ]
+            },
+            userMenuView: defaultUserMenu(state.topBannerState),
+            youwolMenuView: defaultYouWolMenu(state.topBannerState),
+            signedIn$: from(
+                fetch(new Request("/api/assets-gateway/healthz"))).pipe(
+                    map(resp => resp.status == 200)
+                )
+        })
+    }
+}
+
 export class AppView implements VirtualDOM {
 
     class = 'h-100 w-100 d-flex flex-column fv-text-primary'
@@ -71,7 +134,10 @@ export class AppView implements VirtualDOM {
     constructor() {
 
         this.children = [
-            new TopBannerView(this.state),
+            child$(
+                this.state.runningApplication$,
+                (app) => app == undefined ? new TopBannerView(this.state) : new RunningAppTopBannerView(this.state, app)
+            ),
             {
                 class: 'flex-grow-1 w-100 d-flex',
                 style: { minHeight: '0px' },

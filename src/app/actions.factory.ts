@@ -4,8 +4,6 @@ import { map } from 'rxjs/operators'
 import { AppState, SelectedItem } from './app.state'
 import { AssetsBrowserClient } from './assets-browser.client'
 import { Nodes } from './data'
-import { FluxApp } from './specific-assets/flux/flux.view'
-import { StoryApp } from './specific-assets/story/story.view'
 
 
 export interface Action {

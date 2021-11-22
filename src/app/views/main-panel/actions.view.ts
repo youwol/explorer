@@ -1,9 +1,11 @@
 import { children$, VirtualDOM } from '@youwol/flux-view'
 import { Button } from '@youwol/fv-button'
 import { of } from 'rxjs'
-import { mergeMap } from 'rxjs/operators'
+import { map, mergeMap } from 'rxjs/operators'
 import { AppState } from '../../app.state'
 import { Action, GENERIC_ACTIONS, getActions$ } from '../../actions.factory'
+import { getSettings$ } from '@youwol/flux-youwol-essentials'
+import { Nodes } from '../../data'
 
 
 export class ButtonView extends Button.View {
@@ -49,10 +51,37 @@ export class ActionsView implements VirtualDOM {
                 ? getActions$(this.state, { node: item, selection: 'direct' }, Object.values(GENERIC_ACTIONS))
                 : of([]))
         )
+
         let actionSpecificItem$ = this.state.selectedItem$.pipe(
-            mergeMap((item) => item
-                ? getActions$(this.state, { node: item, selection: 'direct' }, this.state.specificActions)
-                : of([]))
+            mergeMap((item: Nodes.ItemNode) => {
+                if (!item)
+                    return of([])
+                return getSettings$().pipe(
+                    map((settings) => {
+
+                        let compatibles = settings.defaultApplications
+                            .filter((preview) => preview.canOpen(item))
+
+                        return compatibles.map((app: { name, canOpen, applicationURL }) => {
+                            return {
+                                icon: "fas fa-play",
+                                name: app.name,
+                                enable: true,
+                                exe: () => {
+                                    let asset = { name: item.name, assetId: item.assetId, rawId: item.rawId }
+                                    let instance = this.state.createInstance({
+                                        icon: 'fas fa-play',
+                                        title: app.name + "#" + item.name,
+                                        appURL: app.applicationURL(asset)
+                                    })
+                                    this.state.focus(instance)
+                                },
+                                applicable: () => true
+                            }
+                        })
+                    })
+                )
+            })
         )
 
         this.children = [

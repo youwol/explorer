@@ -4,27 +4,12 @@ import { filter } from "rxjs/operators"
 import { AppState, SelectedItem, TreeGroup } from "../../app.state"
 import { AssetsBrowserClient } from "../../assets-browser.client"
 import { Nodes, progressMessage, UploadStep } from "../../data"
-import { DataApp } from "./data.view"
+//import { DataApp } from "./data.view"
 
 
 export class DataState {
 
     NodeType = Nodes.DataNode
-    getApp(node: Nodes.DataNode) {
-        return new DataApp({ item: node })
-    }
-
-    actions = [
-        (state: AppState, { node }: SelectedItem, permissions) => ({
-            icon: 'fas fa-eye',
-            name: 'preview',
-            enable: permissions.read,
-            applicable: () => {
-                return node instanceof Nodes.DataNode
-            },
-            exe: () => { state.run(new DataApp({ item: node as Nodes.DataNode })) }
-        })
-    ]
 
     constructor(public readonly userTree: TreeGroup) {
     }

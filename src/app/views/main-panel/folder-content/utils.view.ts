@@ -1,9 +1,8 @@
 import { attr$, child$, Stream$, VirtualDOM } from "@youwol/flux-view";
-import { ywSpinnerView } from "@youwol/flux-youwol-essentials";
+import { getSettings$, ywSpinnerView } from "@youwol/flux-youwol-essentials";
+import { take } from "rxjs/operators";
 import { AppState } from "../../../app.state";
 import { Nodes } from "../../../data";
-import { FluxApp } from "../../../specific-assets/flux/flux.view";
-import { StoryApp } from "../../../specific-assets/story/story.view";
 
 
 
@@ -52,14 +51,25 @@ export class RenamableItemView {
                 }
             )
         ]
-        this.onclick = () => this.state.selectItem(this.item),
-            this.ondblclick = () => {
-                let s = this.state.allStates.find((s) => this.item instanceof s.NodeType)
-                if (!s) {
+        this.onclick = () => this.state.selectItem(this.item)
+        this.ondblclick = () => {
+            getSettings$().pipe(
+                take(1)
+            ).subscribe((settings) => {
+
+                let app = settings.defaultApplications
+                    .find((preview) => preview.canOpen(this.item))
+                if (!app || this.item instanceof Nodes.FolderNode)
                     return
-                }
-                this.state.run(s.getApp(this.item))
-            }
+                let asset = { name: this.item.name, assetId: this.item.assetId, rawId: this.item.rawId }
+                let instance = this.state.createInstance({
+                    icon: 'fas fa-play',
+                    title: app.name + "#" + this.item.name,
+                    appURL: app.applicationURL(asset)
+                })
+                this.state.focus(instance)
+            })
+        }
     }
 
     editView() {

@@ -205,12 +205,13 @@ export namespace Nodes {
         rawId: string
         assetId: string
         borrowed: boolean
+        kind: string
 
         constructor(params:
             {
                 id: string, groupId: string, driveId: string, name: string,
                 assetId: string, rawId: string, borrowed: boolean,
-                icon?: string
+                kind?: string, icon?: string
             }) {
             super({ ...params, children: undefined })
             Object.assign(this, params)

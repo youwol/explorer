@@ -98,6 +98,10 @@ let databaseActionsFactory = {
         },
         then: () => {
             let node = update.addedNodes[0] as Nodes.ItemNode
+            let cmd = update.command as ImmutableTree.ReplaceAttributesCommand<Nodes.ItemNode>
+            if (!cmd.metadata.toBeSaved) {
+                return
+            }
             let uid = uuidv4()
             node.addStatus({ type: 'request-pending', id: uid })
             AssetsBrowserClient.renameAsset$(node, node.name).pipe(
@@ -581,7 +585,7 @@ export class AssetsBrowserClient {
                 if (item.kind == "data")
                     return new Nodes.DataNode(assetData)
                 if (item.kind == "package")
-                    return new Nodes.FluxPackNode(assetData)
+                    return new Nodes.PackageNode(assetData)
                 throw Error("Unknown asset type")
 
             }), ...folderId == driveId

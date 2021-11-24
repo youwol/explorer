@@ -313,10 +313,10 @@ export class AppState {
         this.runningApplications$.next([...this.runningApplications$.getValue(), preview])
     }
 
-    rename(node: Nodes.FolderNode | Nodes.ItemNode, newName: string) {
+    rename(node: Nodes.FolderNode | Nodes.ItemNode, newName: string, save: boolean = true) {
 
         node.removeStatus({ type: 'renaming' })
-        this.groupsTree[node.groupId].replaceAttributes(node, { name: newName })
+        this.groupsTree[node.groupId].replaceAttributes(node, { name: newName }, true, () => ({}), { toBeSaved: save })
     }
 
     deleteFolder(node: Nodes.FolderNode) {

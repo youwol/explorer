@@ -24,7 +24,7 @@ class PredefinedFolderView implements VirtualDOM {
         this.children = [{
             class: attr$(
                 state.currentFolder$,
-                (f) => f instanceof Object.getPrototypeOf(node).constructor
+                ({ folder }) => folder instanceof Object.getPrototypeOf(node).constructor
                     ? 'fv-text-focus fv-hover-text-primary'
                     : 'fv-text-primary'
                 ,

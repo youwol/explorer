@@ -34,6 +34,7 @@ export class Asset {
     public readonly images: Array<string>
     public readonly thumbnails: Array<string>
     public readonly tags: Array<string>
+    public readonly permissions: any
     constructor(params:
         {
             treeId: string, assetId: string, rawId: string, kind: string, name: string, groupId: string,

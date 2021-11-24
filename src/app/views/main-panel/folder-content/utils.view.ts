@@ -1,9 +1,14 @@
 import { attr$, child$, Stream$, VirtualDOM } from "@youwol/flux-view";
-import { getSettings$, ywSpinnerView } from "@youwol/flux-youwol-essentials";
-import { take } from "rxjs/operators";
-import { AppState } from "../../../app.state";
-import { Nodes } from "../../../data";
+import {
+    getSettings$, popupAssetModalView, ywSpinnerView, AssetActionsView,
+    PackageInfoView, AssetPermissionsView, FluxDependenciesView
+} from "@youwol/flux-youwol-essentials";
 
+import { Observable, of } from "rxjs";
+import { distinct, map, mergeMap, take } from "rxjs/operators";
+import { AppState } from "../../../app.state";
+import { AssetsBrowserClient } from "../../../assets-browser.client";
+import { Nodes } from "../../../data";
 
 
 export class RenamableItemView {
@@ -18,11 +23,16 @@ export class RenamableItemView {
     public readonly ondblclick: any
     public readonly state: AppState
     public readonly item: Nodes.FolderNode | Nodes.ItemNode
+    public readonly hovered$: Observable<Nodes.BrowserNode>
 
-    constructor(params: { state: AppState, item: Nodes.FolderNode | Nodes.ItemNode }) {
+    constructor(params: {
+        state: AppState,
+        item: Nodes.FolderNode | Nodes.ItemNode,
+        hovered$?: Observable<Nodes.BrowserNode>
+    }) {
         Object.assign(this, params)
-
-        let baseClass = 'd-flex align-items-center p-1 rounded m-2 fv-hover-bg-background-alt fv-pointer'
+        this.hovered$ = this.hovered$ || this.state.selectedItem$
+        let baseClass = 'd-flex align-items-center p-1 rounded m-2 fv-pointer'
         this.class = attr$(
             this.state.selectedItem$,
             (node) => {
@@ -33,6 +43,9 @@ export class RenamableItemView {
             { untilFirst: baseClass }
         )
         this.children = [
+            this.item instanceof Nodes.ItemNode && this.item.borrowed
+                ? { class: 'fas fa-link pr-1' }
+                : undefined,
             {
                 class: `fas ${this.item.icon} mr-1`
             },
@@ -49,6 +62,10 @@ export class RenamableItemView {
                         ? ywSpinnerView({ classes: 'mx-auto my-auto', size: '15px', duration: 1.5 })
                         : {}
                 }
+            ),
+            child$(
+                this.hovered$,
+                (node) => this.actionsView(node)
             )
         ]
         this.onclick = () => this.state.selectItem(this.item)
@@ -71,6 +88,48 @@ export class RenamableItemView {
             })
         }
     }
+
+    actionsView(node: Nodes.ItemNode | Nodes.FolderNode) {
+        if (node == undefined || node instanceof Nodes.FolderNode)
+            return {}
+
+        let asset$ = of(node).pipe(
+            mergeMap(({ assetId }) => {
+                return AssetsBrowserClient.getAsset$(assetId)
+            })
+        )
+        let infoView = {
+            tag: 'button',
+            class: 'fas fv-btn-secondary fa-info-circle fv-text-primary fv-pointer mx-4 rounded p-1',
+            onclick: () => {
+                let withTabs = {
+                    Permissions: new AssetPermissionsView({ asset: node as any })
+                }
+                if (node.kind == "flux-project") {
+                    withTabs['Dependencies'] = new FluxDependenciesView({ asset: node as any })
+                }
+                if (node.kind == "package") {
+                    withTabs['Package Info'] = new PackageInfoView({ asset: node as any })
+                }
+                let assetUpdate$ = popupAssetModalView({
+                    asset$,
+                    actionsFactory: (asset) => {
+                        return new AssetActionsView({ asset })
+                    },
+                    withTabs
+                })
+
+                assetUpdate$.pipe(
+                    map(asset => asset.name),
+                    distinct()
+                ).subscribe((name) => {
+                    this.state.rename(node, name, false)
+                })
+            }
+        }
+        return node.id == this.item.id ? infoView : {}
+    }
+
 
     editView() {
 

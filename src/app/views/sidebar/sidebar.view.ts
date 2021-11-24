@@ -37,7 +37,7 @@ class PredefinedFolderView implements VirtualDOM {
                 {
                     class: attr$(
                         extended$,
-                        (extended) => extended ? 'px-2' : 'd-none'
+                        (extended) => extended ? 'px-2 flex-grow-1 ' : 'd-none'
                     ),
                     innerText: title
                 },

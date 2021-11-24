@@ -1,6 +1,6 @@
 import { uuidv4 } from '@youwol/flux-core';
 import { ImmutableTree } from "@youwol/fv-tree";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { delay, share, tap } from 'rxjs/operators';
 import { AssetsBrowserClient, debugDelay } from './assets-browser.client';
 
@@ -251,25 +251,15 @@ export namespace Nodes {
         }
     }
 
-    export class FluxPackNode extends ItemNode {
-        kind = "flux-project"
-        constructor({ id, groupId, driveId, name, assetId, rawId, borrowed }:
-            {
-                id: string, groupId: string, driveId: string, name: string,
-                assetId: string, rawId: string, borrowed: boolean,
-            }) {
-            super({ id, groupId, name, driveId, assetId, rawId, borrowed })
-        }
-    }
-
     export class PackageNode extends ItemNode {
         kind = "package"
-        constructor({ id, groupId, driveId, name, assetId, rawId, borrowed }:
+
+        constructor(params:
             {
                 id: string, groupId: string, driveId: string, name: string,
                 assetId: string, rawId: string, borrowed: boolean,
             }) {
-            super({ id, groupId, name, driveId, assetId, rawId, borrowed })
+            super({ ...params, icon: 'fas fa-box' })
         }
     }
 

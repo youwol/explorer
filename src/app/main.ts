@@ -9,7 +9,7 @@ loadingScreen.render()
 let stylesFutures = cdn.fetchStyleSheets([
     "bootstrap#4.4.1~bootstrap.min.css",
     "fontawesome#5.12.1~css/all.min.css",
-    "@youwol/fv-widgets#0.0.4~dist/assets/styles/style.youwol.css"
+    "@youwol/fv-widgets#latest~dist/assets/styles/style.youwol.css"
 ]).then(([bootstrap, fa, fvWidgets]) => {
     bootstrap.id = 'bootstrap'
     fa.id = 'fa'

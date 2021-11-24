@@ -148,6 +148,8 @@ function createTreeGroup(groupName: string, respUserDrives, respDefaultDrive) {
 
 export class AppState {
 
+    public readonly Nodes = Nodes
+
     public flux: FluxState
     public story: StoryState
     public data: DataState
@@ -159,7 +161,6 @@ export class AppState {
     public readonly openFolder$ = new ReplaySubject<{ tree: TreeGroup, folder: Nodes.BrowserNode }>(1)
 
     public readonly currentFolder$ = this.openFolder$.pipe(
-        tap(({ tree, folder }) => console.log("Folder is open", { folder, tree })),
         filter(({ folder }) => folder.children != undefined
         ),
         mergeMap(({ tree, folder }) => {
@@ -217,7 +218,7 @@ export class AppState {
         window['@youwol/os'] = this
         this.createInstance({
             icon: "fas fa-shopping-cart",
-            title: "Market place",
+            title: "Exhibition halls",
             appURL: `/ui/exhibition-halls/`
         })
     }
@@ -278,14 +279,12 @@ export class AppState {
             title: appData.title,
             appURL$: of(url)
         })
-        console.log("Instance created", instanceId, app)
         this.runningApplications$.next([...this.runningApplications$.getValue(), app])
         return app
     }
 
 
     focus(app: RunningApp) {
-        console.log("Instance focused", app.instanceId, app)
         this.runningApplication$.next(app)
     }
 
@@ -294,7 +293,6 @@ export class AppState {
     }
 
     setTopBannerViews(appId: string, { actionsView, badgesView }: { actionsView: VirtualDOM, badgesView: VirtualDOM }) {
-        console.log("Set top banner view", appId, { actionsView, badgesView })
         let app = this.runningApplications$.getValue().find(app => app.instanceId === appId)
         app.topBannerActions$.next(actionsView)
     }
@@ -306,7 +304,7 @@ export class AppState {
     }
 
     minimize(preview: RunningApp) {
-        console.log("Minimize")
+
         this.runningApplication$.next(undefined)
         if (this.runningApplications$.getValue().includes(preview))
             return

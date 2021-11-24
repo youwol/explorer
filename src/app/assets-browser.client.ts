@@ -50,7 +50,7 @@ export class Item {
         this.borrowed = borrowed
     }
 }
-let debugDelay = 1000
+export let debugDelay = 0
 
 let databaseActionsFactory = {
     /*addFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({

@@ -2,7 +2,7 @@ import { uuidv4 } from '@youwol/flux-core';
 import { ImmutableTree } from "@youwol/fv-tree";
 import { BehaviorSubject, Observable } from "rxjs";
 import { delay, share, tap } from 'rxjs/operators';
-import { AssetsBrowserClient } from './assets-browser.client';
+import { AssetsBrowserClient, debugDelay } from './assets-browser.client';
 
 
 
@@ -109,7 +109,7 @@ export namespace Nodes {
             let uid = uuidv4()
             this.addStatus({ type: 'request-pending', id: uid })
             return super.resolveChildren().pipe(
-                delay(1000),
+                delay(debugDelay),
                 tap(() => {
                     this.removeStatus({ type: 'request-pending', id: uid })
                 })

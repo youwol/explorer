@@ -1,10 +1,9 @@
-import { attr$, children$, VirtualDOM } from "@youwol/flux-view"
+import { attr$, child$, VirtualDOM } from "@youwol/flux-view"
 import { AppState } from "../../../app.state"
 import { Nodes } from "../../../data"
-import { Action, getActions$ } from "../../../actions.factory"
+import { Action } from "../../../actions.factory"
 import { RenamableItemView } from "./utils.view"
-
-
+import { BehaviorSubject } from "rxjs"
 
 
 export class DetailsContentView {
@@ -21,6 +20,7 @@ export class DetailsContentView {
 
         Object.assign(this, params)
         console.log("DetailsContentView")
+        let hoveredRow$ = new BehaviorSubject<Nodes.FolderNode | Nodes.BrowserNode>(undefined)
         this.children = [
             {
                 class: 'row w-100 justify-content-between py-2 border-bottom',
@@ -29,7 +29,8 @@ export class DetailsContentView {
                 },
                 children: [
                     { innerText: 'Name', class: 'px-2 col-sm text-center' },
-                    { innerText: 'Record id', class: 'px-2 col-sm text-center' },
+                    { innerText: 'Asset id', class: 'px-2 col-sm text-center' },
+                    { innerText: 'Tree id', class: 'px-2 col-sm text-center' },
                     { innerText: 'URL', class: 'px-2 col-sm text-center' }
                 ]
             },
@@ -38,9 +39,13 @@ export class DetailsContentView {
                 children: this.items
                     .map((item: Nodes.FolderNode | Nodes.ItemNode) => {
                         let treeId = item.id
+                        let assetId = ""
                         let url = ""
                         if (item instanceof Nodes.DataNode) {
                             url = `/api/assets-gateway/raw/data/${item.rawId}`
+                        }
+                        if (item instanceof Nodes.ItemNode) {
+                            assetId = item.assetId
                         }
                         return {
                             class: attr$(
@@ -62,10 +67,13 @@ export class DetailsContentView {
                                 if (item instanceof Nodes.FolderNode)
                                     this.state.openFolder(item)
                             },
+                            onmouseenter: () => hoveredRow$.next(item),
+                            onmouseleave: () => hoveredRow$.next(undefined),
                             children: [
-                                { class: 'col-sm', children: [new RenamableItemView({ state: this.state, item })] },
-                                this.cellView(treeId),
-                                this.cellView(url),
+                                { class: 'col-sm', children: [new RenamableItemView({ state: this.state, item, hovered$: hoveredRow$ })] },
+                                this.cellView(treeId, assetId, hoveredRow$),
+                                this.cellView(treeId, treeId, hoveredRow$),
+                                this.cellView(treeId, url, hoveredRow$),
                             ]
                         }
                     })
@@ -100,27 +108,44 @@ export class DetailsContentView {
         }
     }
 
-    cellView(name: string, icon: string = ""): VirtualDOM {
+    cellView(id: string, content: string, hoveredRow$): VirtualDOM {
 
         return {
             class: 'px-2 col-sm',
             children: [
                 {
                     class: 'd-flex align-items-center h-100 my-auto mx-auto',
-                    children: [{
-                        class: `${icon} mr-1`
+                    style: {
+                        width: 'fit-content'
                     },
-                    {
-                        class: 'mx-auto',
-                        style: {
-                            userSelect: 'none',
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            maxWidth: "100px",
-                            overflow: "hidden"
+                    children: [
+                        {
+                            class: 'mx-auto',
+                            style: {
+                                userSelect: 'none',
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                maxWidth: "100px",
+                                overflow: "hidden",
+                                width: 'fit-content'
+                            },
+                            innerText: content
                         },
-                        innerText: name
-                    }]
+                        child$(
+                            hoveredRow$,
+                            (item) =>
+                                item && content && item.id == id
+                                    ? {
+                                        tag: 'button',
+                                        class: `fas fv-btn-secondary fa-copy mr-1 p-1 rounded mx-2`,
+                                        onclick: () => {
+                                            navigator.clipboard.writeText(content).then(() => {/*NOOP*/ });
+                                        }
+                                    }
+                                    : {}
+
+                        )
+                    ]
                 }
             ]
         }

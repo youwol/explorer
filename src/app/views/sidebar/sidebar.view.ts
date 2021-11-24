@@ -1,9 +1,8 @@
 import { attr$, child$, children$, VirtualDOM } from "@youwol/flux-view"
-import { BehaviorSubject, Observable } from "rxjs"
+import { BehaviorSubject, merge, Observable } from "rxjs"
 import { AppState } from "../../app.state"
-import { AssetsBrowserClient } from "../../assets-browser.client"
 import { GroupResponse } from "@youwol/flux-youwol-essentials"
-import { mergeMap, take } from "rxjs/operators"
+import { delay, mapTo, take } from "rxjs/operators"
 import { Nodes } from "../../data"
 
 
@@ -42,8 +41,19 @@ class PredefinedFolderView implements VirtualDOM {
                     innerText: title
                 },
                 {
-                    class: faClass + " ml-auto text-center",
-                    style: { width: '30px' }
+                    class: 'd-flex flex-column align-items-center',
+                    children: [
+                        child$(
+                            merge(node.events$, node.events$.pipe(delay(10000), mapTo(undefined))),
+                            (event) => event ? {
+                                class: 'far fa-dot-circle fv-text-focus pb-1'
+                            } : {}
+                        ),
+                        {
+                            class: faClass + " ml-auto text-center",
+                            style: { width: '30px' }
+                        }
+                    ]
                 }
             ],
             onclick: () => {

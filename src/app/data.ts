@@ -79,11 +79,15 @@ export class Favorite {
         public readonly assetId: string,
         public readonly imageSrc: string = undefined) { }
 }
+
+type NodeEventType = 'item-added'
+
 export namespace Nodes {
 
     export class BrowserNode extends ImmutableTree.Node {
 
         name: string
+        events$ = new Subject<{ type: NodeEventType }>()
         status$ = new BehaviorSubject<Array<{ type: string, id: string }>>([])
         icon: string
 

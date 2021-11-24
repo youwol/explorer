@@ -21,13 +21,12 @@ export class MainPanelView implements VirtualDOM {
     public readonly children: VirtualDOM[]
 
     public readonly state: AppState
-    public readonly folder: Nodes.FolderNode
 
     public readonly displayMode$ = new BehaviorSubject<DisplayMode>('details')
 
     cache = {}
 
-    constructor(params: { state: AppState, folder: Nodes.FolderNode }) {
+    constructor(params: { state: AppState }) {
         Object.assign(this, params)
 
         console.log("MainPanelView")
@@ -51,7 +50,12 @@ export class MainPanelView implements VirtualDOM {
                             (app) => app == undefined ? 'h-100 d-flex' : 'd-none'
                         ),
                         children: [
-                            new FolderContentView({ state: this.state, folderId: this.folder.id, groupId: this.folder.groupId, displayMode$: this.displayMode$ })
+                            child$(
+                                this.state.currentFolder$,
+                                ({ folder }) => {
+                                    return new FolderContentView({ state: this.state, folderId: folder.id, groupId: folder.groupId, displayMode$: this.displayMode$ })
+                                }
+                            )
                         ]
                     },
                     {

@@ -2,7 +2,6 @@ import { uuidv4 } from "@youwol/flux-core"
 import { BehaviorSubject } from "rxjs"
 import { filter } from "rxjs/operators"
 import { TreeGroup } from "../../app.state"
-import { AssetsBrowserClient } from "../../assets-browser.client"
 import { AnyFolderNode, ItemNode, progressMessage, ProgressNode, UploadStep } from "../../nodes"
 
 export class DataState {
@@ -27,7 +26,7 @@ export class DataState {
         };
 
         request.open("PUT", url, true);
-        Object.entries(AssetsBrowserClient.headers).forEach(([k, v]) => request.setRequestHeader(k, v))
+
         request.onload = (e) => {
             if (request.readyState === 4) {
                 if (request.status === 200) {

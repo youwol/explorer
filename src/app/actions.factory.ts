@@ -1,4 +1,5 @@
 
+import { AssetsGatewayClient } from '@youwol/flux-youwol-essentials'
 import { Observable, of } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { AppState, SelectedItem } from './app.state'
@@ -165,7 +166,7 @@ export function getActions$(
         ? item.node.driveId
         : item.node.id
 
-    return AssetsBrowserClient.permissions$(id)
+    return new AssetsGatewayClient().permissions$(id)
         .pipe(
             map(permissions => ({ state, item: item, permissions })),
             map(({ state, item, permissions }) => {

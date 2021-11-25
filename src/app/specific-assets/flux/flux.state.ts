@@ -1,6 +1,5 @@
 import { createObservableFromFetch, uuidv4 } from "@youwol/flux-core"
 import { TreeGroup } from "../../app.state"
-import { AssetsBrowserClient } from "../../assets-browser.client"
 import { AnyFolderNode, FutureNode, ItemNode } from "../../nodes"
 
 export class FluxState {
@@ -10,8 +9,8 @@ export class FluxState {
     }
     static newFluxProject$(node: AnyFolderNode) {
 
-        let url = `${AssetsBrowserClient.urlBaseAssets}/flux-project/location/${node.id}`
-        let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
+        let url = `/api/assets-gateway/flux-project/location/${node.id}`
+        let request = new Request(url, { method: 'PUT', headers: {} })
         return createObservableFromFetch(request)
     }
 

@@ -90,7 +90,7 @@ function createTreeGroup(groupName: string, respUserDrives, respDefaultDrive) {
         parentFolderId: respDefaultDrive.driveId,
         driveId: respDefaultDrive.driveId,
         name: respDefaultDrive.homeFolderName,
-        children: AssetsBrowserClient.getFolderChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.homeFolderId)
+        children: AssetsBrowserClient.getFolderChildren(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.homeFolderId)
     })
     let downloadFolderNode = new FolderNode<'download'>({
         kind: 'download',
@@ -99,7 +99,7 @@ function createTreeGroup(groupName: string, respUserDrives, respDefaultDrive) {
         parentFolderId: respDefaultDrive.driveId,
         driveId: respDefaultDrive.driveId,
         name: respDefaultDrive.downloadFolderName,
-        children: AssetsBrowserClient.getFolderChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.downloadFolderId)
+        children: AssetsBrowserClient.getFolderChildren(respDefaultDrive.groupId, respDefaultDrive.driveId, respDefaultDrive.downloadFolderId)
     })
     let trashFolderNode = new FolderNode<'trash'>({
         kind: 'trash',
@@ -108,7 +108,7 @@ function createTreeGroup(groupName: string, respUserDrives, respDefaultDrive) {
         groupId: respDefaultDrive.groupId,
         driveId: respDefaultDrive.driveId,
         name: 'Trash',
-        children: AssetsBrowserClient.getDeletedChildren$(respDefaultDrive.groupId, respDefaultDrive.driveId)
+        children: AssetsBrowserClient.getDeletedChildren(respDefaultDrive.groupId, respDefaultDrive.driveId)
     })
     let defaultDrive = new DriveNode({
         groupId: respDefaultDrive.groupId,
@@ -123,7 +123,7 @@ function createTreeGroup(groupName: string, respUserDrives, respDefaultDrive) {
                 groupId: drive.groupId,
                 driveId: drive.driveId,
                 name: drive.name,
-                children: AssetsBrowserClient.getFolderChildren$(drive.groupId, drive.driveId, drive.driveId)
+                children: AssetsBrowserClient.getFolderChildren(drive.groupId, drive.driveId, drive.driveId)
             })
         })
     let userGroup = new GroupNode({
@@ -171,14 +171,14 @@ export class AppState {
     public readonly runningApplication$ = new BehaviorSubject<RunningApp>(undefined)
     public readonly runningApplications$ = new BehaviorSubject<RunningApp[]>([])
 
-    public readonly userInfo$ = AssetsBrowserClient.getUserInfo$().pipe(
+    public readonly userInfo$ = AssetsBrowserClient.getUserInfo().pipe(
         share()
     )
 
     public readonly defaultUserDrive$ = this.userInfo$.pipe(
         mergeMap(({ groups }) => {
             let privateGrp = groups.find(grp => grp.path == 'private')
-            return AssetsBrowserClient.getDefaultDrive$(privateGrp.id)
+            return AssetsBrowserClient.getDefaultDrive(privateGrp.id)
         }),
         share()
     )
@@ -186,7 +186,7 @@ export class AppState {
     public readonly userDrives$ = this.userInfo$.pipe(
         mergeMap(({ groups }) => {
             let privateGrp = groups.find(grp => grp.path == 'private')
-            return AssetsBrowserClient.getDrivesChildren$(privateGrp.id)
+            return AssetsBrowserClient.getDrivesChildren(privateGrp.id)
         })
     )
 
@@ -232,8 +232,8 @@ export class AppState {
 
     selectGroup(group) {
         combineLatest([
-            AssetsBrowserClient.getDefaultDrive$(group.id),
-            AssetsBrowserClient.getDrivesChildren$(group.id)
+            AssetsBrowserClient.getDefaultDrive(group.id),
+            AssetsBrowserClient.getDrivesChildren(group.id)
         ]).subscribe(([defaultDrive, drives]: [any, any]) => {
             let tree = createTreeGroup(group.elements.slice(-1)[0], drives, defaultDrive)
             this.groupsTree[defaultDrive.groupId] = tree
@@ -259,7 +259,7 @@ export class AppState {
                 })
                 tree.replaceNode(childFolder.id, folderNode)
             },
-            request: AssetsBrowserClient.newFolder$(parentNode, { name: 'new folder', folderId: uuidv4() })
+            request: AssetsBrowserClient.newFolder(parentNode, { name: 'new folder', folderId: uuidv4() })
         })
         tree.addChild(parentNode.id, childFolder)
     }
@@ -328,7 +328,7 @@ export class AppState {
 
     purgeDrive(trashNode: TrashNode) {
 
-        AssetsBrowserClient.purgeDrive$(trashNode.driveId).pipe(
+        AssetsBrowserClient.purgeDrive(trashNode.driveId).pipe(
             mergeMap(() => {
                 let tree = this.groupsTree[trashNode.groupId]
                 return tree.getTrashNode().resolveChildren()

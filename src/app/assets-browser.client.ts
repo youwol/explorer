@@ -1,10 +1,10 @@
-import { Observable, of } from "rxjs";
-import { delay, map, mergeMap, tap } from 'rxjs/operators';
-import { AnyFolderNode, AnyItemNode, Asset, BrowserNode, DeletedFolderNode, DeletedItemNode, DriveNode, FolderNode, FutureNode, GroupNode, ItemNode, RegularFolderNode } from './nodes';
+import { delay, map } from 'rxjs/operators';
+import { AnyFolderNode, AnyItemNode, BrowserNode, DeletedFolderNode, DeletedItemNode, DriveNode, FolderNode, FutureNode, ItemNode, RegularFolderNode } from './nodes';
 
-import * as FluxLibCore from '@youwol/flux-core'
 import { uuidv4 } from '@youwol/flux-core';
 import { ImmutableTree } from "@youwol/fv-tree";
+import { Asset, AssetsGatewayClient } from '@youwol/flux-youwol-essentials';
+import { Observable } from 'rxjs';
 
 export class Drive {
 
@@ -87,7 +87,7 @@ let databaseActionsFactory = {
             let node = update.addedNodes[0] as RegularFolderNode
             let uid = uuidv4()
             node.addStatus({ type: 'request-pending', id: uid })
-            AssetsBrowserClient.renameFolder$(node, node.name).pipe(
+            AssetsBrowserClient.renameFolder(node.id, node.name).pipe(
                 delay(debugDelay)
             )
                 .subscribe((resp: Folder) => {
@@ -109,7 +109,7 @@ let databaseActionsFactory = {
             }
             let uid = uuidv4()
             node.addStatus({ type: 'request-pending', id: uid })
-            AssetsBrowserClient.renameAsset$(node, node.name).pipe(
+            AssetsBrowserClient.renameItem(node.id, node.name).pipe(
                 delay(debugDelay)
             )
                 .subscribe(() => {
@@ -134,7 +134,7 @@ let databaseActionsFactory = {
             let parent = cmd.parentNode
             let uid = uuidv4()
             parent.addStatus({ type: 'request-pending', id: uid })
-            AssetsBrowserClient.deleteFolder$(node).pipe(
+            AssetsBrowserClient.deleteFolder(node).pipe(
                 delay(debugDelay)
             )
                 .subscribe(() => {
@@ -154,7 +154,7 @@ let databaseActionsFactory = {
             let parent = cmd.parentNode
             let uid = uuidv4()
             parent.addStatus({ type: 'request-pending', id: uid })
-            AssetsBrowserClient.deleteItem$(node).pipe(
+            AssetsBrowserClient.deleteItem(node).pipe(
                 delay(debugDelay)
             )
                 .subscribe(() => {
@@ -185,16 +185,11 @@ let databaseActionsFactory = {
         }
     }),
 }
+
+
 export class AssetsBrowserClient {
 
-    static urlBase = '/api/assets-gateway'
-    static urlBaseOrganization = '/api/assets-gateway/tree'
-    static urlBaseAssets = '/api/assets-gateway/assets'
-    static urlBaseRaws = '/api/assets-gateway/raw'
-
-    static allGroups = undefined
-
-    static headers: { [key: string]: string } = {}
+    static assetsGtwClient = new AssetsGatewayClient()
 
     static execute(update: ImmutableTree.Updates<BrowserNode>) {
 
@@ -204,225 +199,43 @@ export class AssetsBrowserClient {
         console.log("Execute command", { update, command })
         command && command.then()
     }
-    static setHeaders(headers: { [key: string]: string }) {
-        AssetsBrowserClient.headers = headers
+
+    static renameFolder(folderId: string, newName: string) {
+        return AssetsBrowserClient.assetsGtwClient.renameFolder(folderId, newName)
     }
 
-    static getUserInfo$() {
-        let url = `${AssetsBrowserClient.urlBase}/user-info`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
+    static renameItem(itemId: string, newName: string) {
+        return AssetsBrowserClient.assetsGtwClient.renameItem(itemId, newName)
     }
 
-    static getDefaultDrive$(groupId: string) {
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/groups/${groupId}/default-drive`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
+    static deleteItem(node: AnyItemNode) {
+        return AssetsBrowserClient.assetsGtwClient.deleteItem(node.driveId, node.treeId)
     }
 
-
-    static newDrive$(node: GroupNode) {
-
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/groups/${node.id}/drives`
-        let body = { "name": "new drive" }
-
-        let request = new Request(url, { method: 'PUT', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
+    static deleteFolder(node: RegularFolderNode) {
+        return AssetsBrowserClient.assetsGtwClient.deleteFolder(node.folderId)
     }
 
-    static deleteItem$(node: AnyItemNode) {
-
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/items/${node.id}`
-        let uid = uuidv4()
-        node.addStatus({ type: 'request-pending', id: uid })
-        let request = new Request(url, { method: 'DELETE', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
+    static getUserInfo() {
+        return AssetsBrowserClient.assetsGtwClient.getUserInfo()
     }
 
-    static deleteFolder$(node: RegularFolderNode) {
-
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
-
-        let uid = uuidv4()
-        node.addStatus({ type: 'request-pending', id: uid })
-        let request = new Request(url, { method: 'DELETE', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
+    static getDefaultDrive(groupId: string) {
+        return AssetsBrowserClient.assetsGtwClient.getDefaultDrive(groupId)
     }
 
-    static deleteDrive$(node: DriveNode) {
-
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/drives/${node.id}`
-
-        let uid = uuidv4()
-        node.addStatus({ type: 'request-pending', id: uid })
-        let request = new Request(url, { method: 'DELETE', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
+    static purgeDrive(driveId: string) {
+        return AssetsBrowserClient.assetsGtwClient.purgeDrive(driveId)
     }
 
-    static purgeDrive$(driveId: string) {
+    static newFolder(node: DriveNode | AnyFolderNode, body: { name: string, folderId: string }) {
 
-        let url = AssetsBrowserClient.urlBaseOrganization + `/drives/${driveId}/purge`
-        let request = new Request(url, { method: 'DELETE', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
+        return AssetsBrowserClient.assetsGtwClient.newFolder(node.id, body)
     }
 
-    static newFolder$(node: DriveNode | AnyFolderNode, body: { name: string, folderId: string }) {
+    static getDeletedChildren(groupId: string, driveId: string) {
 
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
-
-        let request = new Request(url, {
-            method: 'PUT', body: JSON.stringify(body),
-            headers: AssetsBrowserClient.headers
-        })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static renameFolder$(node: RegularFolderNode, newName: string) {
-
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
-        let body = { "name": newName }
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static renameDrive$(node: DriveNode, newName: string) {
-
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/drives/${node.driveId}`
-        let body = { "name": newName }
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-
-    static renameAsset$(node: AnyItemNode, newName: string) {
-
-        let url = `${AssetsBrowserClient.urlBaseAssets}/${node.id}`
-        let body = { "name": newName }
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static move$(target: AnyItemNode | RegularFolderNode, folder: AnyFolderNode | DriveNode) {
-
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/${target.id}/move`
-        let body = { destinationFolderId: folder.id }
-
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static borrow$(target: AnyItemNode, folder: AnyFolderNode | DriveNode) {
-
-        let url = `${AssetsBrowserClient.urlBaseOrganization}/${target.id}/borrow`
-        let body = { destinationFolderId: folder.id }
-
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-
-    static queryAssets$(query): Observable<Array<Asset>> {
-
-        let url = AssetsBrowserClient.urlBaseAssets + "/query-tree"
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(query), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request).pipe(
-            map(({ assets }) => assets.map(asset => new Asset(asset)))
-        )
-    }
-
-    static getAsset$(assetId: string): Observable<Asset> {
-        let url = AssetsBrowserClient.urlBaseAssets + `/${assetId}`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request).pipe(
-            map((asset: any) => new Asset(asset))
-        )
-    }
-
-    static updateAsset$(asset: Asset, attributesUpdate): Observable<Asset> {
-
-        let body = Object.assign({}, asset, attributesUpdate)
-        let url = AssetsBrowserClient.urlBaseAssets + `/${asset.assetId}`
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request).pipe(
-            map((asset: any) => new Asset(asset))
-        )
-    }
-
-    static addPicture$(asset: Asset, picture) {
-
-        var formData = new FormData();
-        formData.append('file', picture.file, picture.id)
-        let url = AssetsBrowserClient.urlBaseAssets + `/${asset.assetId}/images/${picture.id}`
-        let request = new Request(url, { method: 'POST', body: formData, headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request).pipe(
-            map((asset: any) => new Asset(asset))
-        )
-    }
-
-    static removePicture$(asset: Asset, pictureId) {
-
-        let url = AssetsBrowserClient.urlBaseAssets + `/${asset.assetId}/images/${pictureId}`
-        let request = new Request(url, { method: 'DELETE', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request).pipe(
-            map((asset: any) => new Asset(asset))
-        )
-    }
-
-    static exposeGroup$(node: AnyFolderNode, { groupId, name }) {
-
-        let url = AssetsBrowserClient.urlBase + `/exposed-groups/groups`
-        let body = { groupId: groupId, name: name, folderId: node.id }
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static package$(node: DriveNode) {
-        let url = `/api/assets-gateway/tree/drives/${node.driveId}/package`
-        let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-
-    static unpackage$(node: AnyItemNode) {
-        let url = `/api/assets-gateway/tree/items/${node.id}/unpack`
-        let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static statistics$(assetId, binsCount) {
-
-        let url = `/api/assets-gateway/assets/${assetId}/statistics?bins_count=${binsCount}`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static permissions$(treeId: string) {
-
-        let url = `/api/assets-gateway/tree/${treeId}/permissions`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static accessInfo$(assetId: string) {
-
-        let url = `/api/assets-gateway/assets/${assetId}/access`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static updateAccess$(assetId: string, groupId: string, body) {
-
-        let url = `/api/assets-gateway/assets/${assetId}/access/${groupId}`
-        let request = new Request(url, { method: 'PUT', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static getDeletedChildren$(groupId: string, driveId: string) {
-
-        let url = `/api/assets-gateway/tree/drives/${driveId}/deleted`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request).pipe(
+        return AssetsBrowserClient.assetsGtwClient.getDeletedChildren(groupId, driveId).pipe(
             map(({ items, folders }: { items: Array<any>, folders: Array<any> }) => {
 
                 return [
@@ -431,171 +244,50 @@ export class AssetsBrowserClient {
                 ]
             })
         ) as Observable<Array<BrowserNode>>
-
     }
 
-    static getFolderChildren$(groupId: string, driveId: string, folderId: string) {
+    static getFolderChildren(groupId: string, driveId: string, folderId: string) {
 
-        let url = `/api/assets-gateway/tree/folders/${folderId}/children`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request).pipe(
+        return AssetsBrowserClient.assetsGtwClient.getFolderChildren(groupId, driveId, folderId).pipe(
             map(({ items, folders }: { items: Array<any>, folders: Array<any> }) => {
-                return AssetsBrowserClient.children(groupId, driveId, folderId, { items, folders })
+
+                return [
+                    ...folders.map((folder: Folder) => {
+                        return new FolderNode({
+                            folderId: folder.folderId, kind: 'regular', groupId, name: folder.name, driveId, parentFolderId: folderId,
+                            children: AssetsBrowserClient.getFolderChildren(groupId, driveId, folder.folderId)
+                        })
+                    }),
+                    ...items.map((item: Item) => {
+                        let assetData = {
+                            id: item.treeId,
+                            groupId,
+                            driveId,
+                            ...item
+                        }
+                        return new ItemNode(assetData as any)
+                    })
+                ]
             })
         ) as Observable<Array<BrowserNode>>
     }
 
-    static getDrivesChildren$(groupId: string) {
+    static getDrivesChildren(groupId: string) {
 
-        let url = `/api/assets-gateway/tree/groups/${groupId}/drives`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request).pipe(
+        return AssetsBrowserClient.assetsGtwClient.getDrives(groupId).pipe(
             map(({ drives }) => {
-
                 return drives.map((drive: Drive) => {
                     return new DriveNode({
                         groupId: groupId, name: drive.name, driveId: drive.driveId,
-                        children: AssetsBrowserClient.getFolderChildren$(groupId, drive.driveId, drive.driveId)
+                        children: AssetsBrowserClient.getFolderChildren(groupId, drive.driveId, drive.driveId)
                     })
                 })
             })
-        ) as Observable<Array<BrowserNode>>
+        ) as Observable<Array<DriveNode>>
     }
 
-    static getGroupsChildren$(pathParent = "") {
-
-        let url = '/api/assets-gateway/groups'
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-        let start$ = this.allGroups
-            ? of(this.allGroups)
-            : FluxLibCore.createObservableFromFetch(request).pipe(
-                tap(({ groups }) => this.allGroups = groups),
-                map(({ groups }) => groups)
-            )
-        return start$.pipe(
-            map((groups: Array<{ id: string, path: string }>) => {
-
-                let children = groups.filter(grp => {
-                    if (pathParent == "")
-                        return grp.path == "private" || grp.path == "/youwol-users"
-                    return grp.path != pathParent && grp.path.includes(pathParent) && (grp.path.slice(pathParent.length).match(/\//g)).length == 1
-                })
-                    .map(({ id, path }) => {
-
-                        return new GroupNode({
-                            id: id,
-                            name: path == "private" ? "" : path.slice(pathParent.length + 1),
-                            kind: path == "private" ? "user" : "users",
-                            children: AssetsBrowserClient.getDrivesChildren$(id).pipe(
-                                mergeMap((drives) => {
-                                    let children$ = AssetsBrowserClient.getGroupsChildren$(path).pipe(
-                                        map((grps: [Array<BrowserNode>]) => [...grps, ...drives]))
-                                    return children$ as Observable<Array<BrowserNode>>
-                                })
-                            )
-                        })
-                    })
-                return children
-            })
-        ) as Observable<Array<BrowserNode>>
+    static getAsset$(assetId: string): Observable<Asset> {
+        return AssetsBrowserClient.assetsGtwClient.getAsset$(assetId)
     }
 
-    static dataPreview$(rawId: string): Observable<{ kind: string, content: string }> {
-        let url = `/api/assets-gateway/raw/data/metadata/${rawId}/preview`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static getDataMetadata$(rawId: string) {
-        let url = `/api/assets-gateway/raw/data/metadata/${rawId}`
-        let request = new Request(url, { headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static updateDataMetadata$(rawId, body) {
-
-        let url = `/api/assets-gateway/raw/data/${rawId}/metadata`
-        let request = new Request(url, { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static fluxProjectAssets$() {
-        let body = { whereClauses: [{ column: "kind", relation: 'eq', term: 'flux-project' }], maxResults: 100 }
-        let requestFluxProject = new Request(`/api/assets-gateway/assets/query-flat`,
-            { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(requestFluxProject)
-    }
-
-    static modulesBoxAssets$() {
-
-        let body = { whereClauses: [{ column: "kind", relation: 'eq', term: 'package' }], maxResults: 100 }
-        let requestFluxProject = new Request(`/api/assets-gateway/assets/query-flat`,
-            { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(requestFluxProject)
-    }
-
-    static importFluxProjects$(node: AnyFolderNode, assets: Array<Asset>) {
-
-        let body = {
-            groupId: node.groupId,
-            folderId: node.id,
-            assetIds: assets.map(asset => asset.assetId)
-        }
-        let request = new Request(`/api/assets-gateway/flux-projects/import`,
-            { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static getFluxProject$(rawId) {
-        let request = new Request(`/api/assets-gateway/raw/flux-project/${rawId}`, { headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static updateFluxProjectMetadata$(rawId: string, body) {
-
-        let request = new Request(`/api/assets-gateway/raw/flux-project/${rawId}/metadata`,
-            { method: 'POST', body: JSON.stringify(body), headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static getPackageMetadata$(rawId: string) {
-
-        let request = new Request(`/api/assets-gateway/raw/package/metadata/${rawId}`, { headers: AssetsBrowserClient.headers })
-
-        return FluxLibCore.createObservableFromFetch(request)
-    }
-
-    static children(groupId, driveId, folderId, { items, folders }: { items: Array<any>, folders: Array<any> }) {
-
-        return [
-            ...folders.map((folder: Folder) => {
-                return new FolderNode({
-                    folderId: folder.folderId, kind: 'regular', groupId, name: folder.name, driveId, parentFolderId: folderId,
-                    children: AssetsBrowserClient.getFolderChildren$(groupId, driveId, folder.folderId)
-                })
-            }), ...items.map((item: Item) => {
-                let assetData = {
-                    id: item.treeId,
-                    groupId,
-                    driveId,
-                    ...item
-                }
-                return new ItemNode(assetData as any)
-
-            }), ...folderId == driveId
-                ? [new FolderNode({
-                    folderId: 'trash_' + driveId, kind: 'trash', parentFolderId: driveId, groupId: groupId, name: 'trash', driveId,
-                    children: AssetsBrowserClient.getDeletedChildren$(groupId, driveId)
-                })]
-                : []
-        ]
-    }
 }

@@ -5,7 +5,7 @@ import { map, mergeMap } from 'rxjs/operators'
 import { AppState } from '../../app.state'
 import { Action, GENERIC_ACTIONS, getActions$ } from '../../actions.factory'
 import { getSettings$ } from '@youwol/flux-youwol-essentials'
-import { Nodes } from '../../data'
+import { AnyItemNode } from '../../nodes'
 
 
 export class ButtonView extends Button.View {
@@ -53,7 +53,7 @@ export class ActionsView implements VirtualDOM {
         )
 
         let actionSpecificItem$ = this.state.selectedItem$.pipe(
-            mergeMap((item: Nodes.ItemNode) => {
+            mergeMap((item: AnyItemNode) => {
                 if (!item)
                     return of([])
                 return getSettings$().pipe(

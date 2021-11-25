@@ -2,7 +2,6 @@ import { attr$, child$, childrenAppendOnly$, VirtualDOM } from "@youwol/flux-vie
 import { BehaviorSubject } from "rxjs";
 import { filter, map } from "rxjs/operators";
 import { AppState } from "../../app.state";
-import { Nodes } from "../../data";
 import { FolderContentView } from "./folder-content/folder-content.view";
 import { HeaderPathView } from "./header-path.view";
 import { RunningApp } from "./running-app.view";

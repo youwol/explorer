@@ -1,8 +1,8 @@
-import { attr$, child$, children$, VirtualDOM } from "@youwol/flux-view";
-import { BehaviorSubject, combineLatest, Observable, Subject } from "rxjs";
-import { map, mergeMap } from "rxjs/operators";
+import { child$, VirtualDOM } from "@youwol/flux-view";
+import { combineLatest, Subject } from "rxjs";
+import { map } from "rxjs/operators";
 import { AppState, TreeGroup } from "../../../app.state";
-import { Nodes } from "../../../data";
+import { BrowserNode } from "../../../nodes";
 import { DisplayMode } from "../main-panel.view";
 import { DetailsContentView } from "./details.view";
 import { MiniaturesContentView } from "./miniatures.view";
@@ -41,7 +41,7 @@ export class FolderContentView implements VirtualDOM {
         this.children = [
             child$(
                 combineLatest([this.displayMode$, items$]),
-                ([mode, items]: [DisplayMode, Nodes.BrowserNode[]]) => {
+                ([mode, items]: [DisplayMode, BrowserNode[]]) => {
                     switch (mode) {
                         case 'cards':
                             return this.cardsView(items)
@@ -56,7 +56,7 @@ export class FolderContentView implements VirtualDOM {
         ]
     }
 
-    cardsView(items: Nodes.BrowserNode[]): VirtualDOM {
+    cardsView(items: BrowserNode[]): VirtualDOM {
         return {
             children: items.map((child) => {
                 return { innerText: child.name }

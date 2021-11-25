@@ -5,30 +5,28 @@ import {
 } from "@youwol/flux-youwol-essentials";
 
 import { Observable, of } from "rxjs";
-import { distinct, map, mergeMap, take } from "rxjs/operators";
+import { distinct, filter, map, mergeMap, take } from "rxjs/operators";
 import { AppState } from "../../../app.state";
 import { AssetsBrowserClient } from "../../../assets-browser.client";
-import { Nodes } from "../../../data";
+import { AnyFolderNode, AnyItemNode, BrowserNode, DriveNode, FolderNode, ItemNode } from "../../../nodes";
 
 
 export class RenamableItemView {
 
     baseClasses = 'd-flex align-items-center p-1 rounded m-3 fv-hover-bg-background-alt fv-pointer'
-    class: Stream$<Nodes.BrowserNode, string>
+    class: Stream$<BrowserNode, string>
     children: VirtualDOM[]
-    public readonly style = {
-        userSelect: 'none'
-    }
+    public readonly style: Stream$<{ type: string, id: string }[], { [key: string]: string }>
     public readonly onclick: any
     public readonly ondblclick: any
     public readonly state: AppState
-    public readonly item: Nodes.FolderNode | Nodes.ItemNode
-    public readonly hovered$: Observable<Nodes.BrowserNode>
+    public readonly item: BrowserNode
+    public readonly hovered$: Observable<BrowserNode>
 
     constructor(params: {
         state: AppState,
-        item: Nodes.FolderNode | Nodes.ItemNode,
-        hovered$?: Observable<Nodes.BrowserNode>
+        item: BrowserNode,
+        hovered$?: Observable<BrowserNode>
     }) {
         Object.assign(this, params)
         this.hovered$ = this.hovered$ || this.state.selectedItem$
@@ -42,8 +40,19 @@ export class RenamableItemView {
             },
             { untilFirst: baseClass }
         )
+
+        this.style = attr$(
+            this.item.status$,
+            (statuses: { type, id }[]) => statuses.find(s => s.type == 'cut') != undefined
+                ? { opacity: 0.3 }
+                : {},
+            {
+                wrapper: (d) => ({ ...d, userSelect: 'none' })
+            }
+        )
+
         this.children = [
-            this.item instanceof Nodes.ItemNode && this.item.borrowed
+            this.item instanceof ItemNode && this.item.borrowed
                 ? { class: 'fas fa-link pr-1' }
                 : undefined,
             {
@@ -65,7 +74,7 @@ export class RenamableItemView {
             ),
             child$(
                 this.hovered$,
-                (node) => this.actionsView(node)
+                (node) => this.infosView(node)
             )
         ]
         this.onclick = () => this.state.selectItem(this.item)
@@ -76,8 +85,9 @@ export class RenamableItemView {
 
                 let app = settings.defaultApplications
                     .find((preview) => preview.canOpen(this.item))
-                if (!app || this.item instanceof Nodes.FolderNode)
+                if (!app || !(this.item instanceof ItemNode))
                     return
+
                 let asset = { name: this.item.name, assetId: this.item.assetId, rawId: this.item.rawId }
                 let instance = this.state.createInstance({
                     icon: 'fas fa-play',
@@ -89,8 +99,8 @@ export class RenamableItemView {
         }
     }
 
-    actionsView(node: Nodes.ItemNode | Nodes.FolderNode) {
-        if (node == undefined || node instanceof Nodes.FolderNode)
+    infosView(node: BrowserNode) {
+        if (!(node instanceof ItemNode))
             return {}
 
         let asset$ = of(node).pipe(
@@ -143,7 +153,7 @@ export class RenamableItemView {
             onclick: (ev) => ev.stopPropagation(),
             onkeydown: (ev) => {
                 if (ev.key === 'Enter')
-                    this.state.rename(this.item, ev.target.value)
+                    this.state.rename(this.item as any, ev.target.value)
             }
         }
 

@@ -2,9 +2,8 @@
 import { Observable, of } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { AppState, SelectedItem } from './app.state'
-import { AssetsBrowserClient } from './assets-browser.client'
-import { Nodes } from './data'
-
+import { AssetsBrowserClient, Item } from './assets-browser.client'
+import { AnyFolderNode, AnyItemNode, DataNode, DeletedNode, DriveNode, FolderNode, FutureNode, GroupNode, ItemNode, ProgressNode, RegularFolderNode, TrashNode } from './nodes'
 
 export interface Action {
     icon: string
@@ -22,12 +21,15 @@ export let GENERIC_ACTIONS = {
         name: 'rename',
         enable: true,
         applicable: () => {
-            if (!permissions.write || node instanceof Nodes.TrashNode || selection == 'indirect')
+
+            if (selection == 'indirect' || !permissions.write)
                 return false
-            if (node instanceof Nodes.ItemNode) {
-                return !node.borrowed
-            }
-            return node instanceof Nodes.FolderNode || node instanceof Nodes.DriveNode
+            if (node instanceof FolderNode && node.kind != 'regular')
+                return false
+            if (node instanceof ItemNode && node.borrowed)
+                return false
+
+            return node instanceof FolderNode || node instanceof DriveNode
         },
         exe: () => { node.addStatus({ type: 'renaming' }) }
     }),
@@ -36,16 +38,16 @@ export let GENERIC_ACTIONS = {
         name: 'new folder',
         enable: permissions.write,
         applicable: () => {
-            return selection == 'indirect' && (node instanceof Nodes.FolderNode || node instanceof Nodes.DriveNode || node instanceof Nodes.HomeNode)
+            return selection == 'indirect' && (node instanceof FolderNode || node instanceof DriveNode)
         },
         exe: () => { state.newFolder(node as any) }
     }),
     download: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
         icon: 'fas fa-download', name: 'download file',
         enable: true,
-        applicable: () => node instanceof Nodes.DataNode && permissions.write,
+        applicable: () => node instanceof ItemNode && node.kind == 'data' && permissions.write,
         exe: () => {
-            let nodeData = node as Nodes.DataNode
+            let nodeData = node as DataNode
             let anchor = document.createElement('a') as HTMLAnchorElement
             anchor.setAttribute("href", `/api/assets-gateway/raw/data/${nodeData.rawId}`)
             anchor.setAttribute("download", nodeData.name)
@@ -57,63 +59,72 @@ export let GENERIC_ACTIONS = {
         icon: 'fas fa-trash',
         name: 'delete',
         enable: permissions.write,
-        applicable: () => node instanceof Nodes.FolderNode && selection == 'direct',
+        applicable: () => node instanceof FolderNode && selection == 'direct',
         exe: () => { state.deleteFolder(node as any) }
     }),
     clearTrash: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
         icon: 'fas fa-times',
         name: 'clear trash',
         enable: permissions.write,
-        applicable: () => node instanceof Nodes.TrashNode,
-        exe: () => { state.purgeDrive(node as Nodes.TrashNode) }
+        applicable: () => node instanceof FolderNode && node.kind == 'trash',
+        exe: () => { state.purgeDrive(node as TrashNode) }
     }),
     newFluxProject: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
         icon: 'fas fa-sitemap',
         name: 'new app',
         enable: permissions.write,
-        applicable: () => selection == 'indirect' && node instanceof Nodes.FolderNode,
+        applicable: () => selection == 'indirect' && node instanceof FolderNode,
         exe: () => { state.flux.new(node as any) }
     }),
     newStory: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
         icon: 'fas fa-book',
         name: 'new story',
         enable: permissions.write,
-        applicable: () => selection == 'indirect' && node instanceof Nodes.FolderNode,
+        applicable: () => selection == 'indirect' && node instanceof FolderNode,
         exe: () => { state.story.new(node as any) }
     }),
-    /*paste: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
+    paste: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
         icon: 'fas fa-paste',
         name: 'paste',
         enable: permissions.write && state.itemCut != undefined,
-        applicable: () => selection == 'indirect' && node instanceof Nodes.FolderNode && permissions.write,
-        exe: () => { state.pasteItem(node as Nodes.FolderNode) }
-    }),*/
-    /* cut: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
-         icon: 'fas fa-cut',
-         name: 'cut',
-         enable: true,
-         applicable: () => {
-             if (!permissions.write || selection == 'indirect')
-                 return false
-             if (node instanceof Nodes.ItemNode)
-                 return !node.borrowed
- 
-             return node instanceof Nodes.FolderNode
-         },
-         exe: () => { state.cutItem(node as (Nodes.ItemNode | Nodes.FolderNode)) }
-     }),*/
+        applicable: () => selection == 'indirect' && node instanceof FolderNode && permissions.write,
+        exe: () => { state.pasteItem(node as AnyFolderNode) }
+    }),
+    cut: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
+        icon: 'fas fa-cut',
+        name: 'cut',
+        enable: true,
+        applicable: () => {
+            if (!permissions.write || selection == 'indirect')
+                return false
+            if (node instanceof ItemNode)
+                return !node.borrowed
+
+            return node instanceof FolderNode
+        },
+        exe: () => { state.cutItem(node as (AnyItemNode | RegularFolderNode)) }
+    }),
+    borrow: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
+        icon: 'fas fa-link',
+        name: 'borrow item',
+        enable: permissions.share,
+        applicable: () => node instanceof ItemNode,
+        exe: () => {
+            state.borrowItem(node as AnyItemNode)
+        }
+    }),
     importData: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
         icon: 'fas fa-file-import',
         name: 'import data',
         enable: permissions.write,
-        applicable: () => selection == 'indirect' && node instanceof Nodes.FolderNode,
+        applicable: () => selection == 'indirect' && node instanceof FolderNode,
         exe: () => {
             let input = document.createElement('input') as HTMLInputElement
             input.setAttribute("type", "file")
             input.setAttribute("multiple", "true")
             input.dispatchEvent(new MouseEvent('click'))
             input.onchange = (ev) => {
-                state.data.import(node as Nodes.FolderNode, input)
+                state.data.import(node as AnyFolderNode, input)
                 input.remove()
             }
         }
@@ -122,27 +133,9 @@ export let GENERIC_ACTIONS = {
         icon: 'fas fa-trash',
         name: 'delete',
         enable: permissions.write,
-        applicable: () => node instanceof Nodes.ItemNode,
-        exe: () => { state.deleteItem(node as Nodes.ItemNode) }
-    }),
-    /*borrow: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
-        icon: 'fas fa-download',
-        name: 'borrow item',
-        enable: permissions.share,
-        applicable: () => {
-            return node instanceof Nodes.ItemNode
-        },
-        exe: () => {
-            state.borrowItem(node as Nodes.ItemNode)
-        }
-    }),*/
-    /*favorite: (state: AppState, { node, selection }: SelectedItem, permissions) => ({
-        icon: 'fas fa-star',
-        name: 'add to favorite bar',
-        enable: true,
-        applicable: () => selection == 'indirect' && node instanceof Nodes.FolderNode,
-        exe: () => { state.addFavorite(node as Nodes.FolderNode) }
-    }),*/
+        applicable: () => node instanceof ItemNode,
+        exe: () => { state.deleteItem(node as AnyItemNode) }
+    })
 }
 
 
@@ -152,13 +145,13 @@ export function getActions$(
     actionsList: ActionConstructor[]
 ): Observable<Array<Action>> {
 
-    if (item.node instanceof Nodes.FutureNode || item.node instanceof Nodes.ProgressNode) {
+    if (item.node instanceof FutureNode || item.node instanceof ProgressNode) {
         return of([])
     }
-    if (item.node instanceof Nodes.DeletedNode)
+    if (item.node instanceof DeletedNode)
         return of([]) // restore at some point
 
-    if (item.node instanceof Nodes.GroupNode) {
+    if (item.node instanceof GroupNode) {
         // a service should return permissions of the current user for the group
         // for now, everybody can do everything
         let actions = actionsList.map(
@@ -168,8 +161,11 @@ export function getActions$(
         return of(actions)
     }
 
+    let id = (item.node instanceof FolderNode && item.node.kind == 'trash')
+        ? item.node.driveId
+        : item.node.id
 
-    return AssetsBrowserClient.permissions$(item.node instanceof Nodes.TrashNode ? item.node.driveId : item.node.id)
+    return AssetsBrowserClient.permissions$(id)
         .pipe(
             map(permissions => ({ state, item: item, permissions })),
             map(({ state, item, permissions }) => {

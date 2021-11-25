@@ -1,6 +1,6 @@
-import { BehaviorSubject, Observable, of } from "rxjs";
+import { Observable, of } from "rxjs";
 import { delay, map, mergeMap, tap } from 'rxjs/operators';
-import { Asset, Nodes, progressMessage, UploadStep } from './data';
+import { AnyFolderNode, AnyItemNode, Asset, BrowserNode, DeletedFolderNode, DeletedItemNode, DriveNode, FolderNode, FutureNode, GroupNode, ItemNode, RegularFolderNode } from './nodes';
 
 import * as FluxLibCore from '@youwol/flux-core'
 import { uuidv4 } from '@youwol/flux-core';
@@ -72,14 +72,19 @@ let databaseActionsFactory = {
                 })
         }
     }),*/
-    renameFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+    renameFolder: (update: ImmutableTree.Updates<BrowserNode>) => ({
         when: () => {
-            return update.command instanceof ImmutableTree.ReplaceAttributesCommand
+            if (!(
+                update.command instanceof ImmutableTree.ReplaceAttributesCommand
                 && update.addedNodes.length == 1
-                && update.addedNodes[0] instanceof Nodes.FolderNode
+                && update.addedNodes[0] instanceof FolderNode
+            ))
+                return false
+            let node = update.addedNodes[0] as AnyFolderNode
+            return node.kind == 'regular'
         },
         then: () => {
-            let node = update.addedNodes[0] as Nodes.FolderNode
+            let node = update.addedNodes[0] as RegularFolderNode
             let uid = uuidv4()
             node.addStatus({ type: 'request-pending', id: uid })
             AssetsBrowserClient.renameFolder$(node, node.name).pipe(
@@ -90,15 +95,15 @@ let databaseActionsFactory = {
                 })
         }
     }),
-    renameItem: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+    renameItem: (update: ImmutableTree.Updates<BrowserNode>) => ({
         when: () => {
             return update.command instanceof ImmutableTree.ReplaceAttributesCommand
                 && update.addedNodes.length == 1
-                && update.addedNodes[0] instanceof Nodes.ItemNode
+                && update.addedNodes[0] instanceof ItemNode
         },
         then: () => {
-            let node = update.addedNodes[0] as Nodes.ItemNode
-            let cmd = update.command as ImmutableTree.ReplaceAttributesCommand<Nodes.ItemNode>
+            let node = update.addedNodes[0] as AnyItemNode
+            let cmd = update.command as ImmutableTree.ReplaceAttributesCommand<AnyItemNode>
             if (!cmd.metadata.toBeSaved) {
                 return
             }
@@ -112,15 +117,20 @@ let databaseActionsFactory = {
                 })
         }
     }),
-    deleteFolder: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+    deleteFolder: (update: ImmutableTree.Updates<BrowserNode>) => ({
         when: () => {
-            return update.command instanceof ImmutableTree.RemoveNodeCommand
-                && update.removedNodes.length == 1
-                && update.removedNodes[0] instanceof Nodes.FolderNode
+            if (!(update.command instanceof ImmutableTree.RemoveNodeCommand) ||
+                update.removedNodes.length !== 1
+            )
+                return false
+            let node = update.removedNodes[0]
+            if (!(node instanceof FolderNode))
+                return false
+            return node.kind === 'regular'
         },
         then: () => {
-            let node = update.removedNodes[0] as Nodes.FolderNode
-            let cmd = update.command as ImmutableTree.RemoveNodeCommand<Nodes.FolderNode>
+            let node = update.removedNodes[0] as FolderNode<'regular'>
+            let cmd = update.command as ImmutableTree.RemoveNodeCommand<FolderNode<'regular'>>
             let parent = cmd.parentNode
             let uid = uuidv4()
             parent.addStatus({ type: 'request-pending', id: uid })
@@ -132,15 +142,15 @@ let databaseActionsFactory = {
                 })
         }
     }),
-    deleteItem: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+    deleteItem: (update: ImmutableTree.Updates<BrowserNode>) => ({
         when: () => {
             return update.command instanceof ImmutableTree.RemoveNodeCommand
                 && update.removedNodes.length == 1
-                && update.removedNodes[0] instanceof Nodes.ItemNode
+                && update.removedNodes[0] instanceof ItemNode
         },
         then: () => {
-            let node = update.removedNodes[0] as Nodes.ItemNode
-            let cmd = update.command as ImmutableTree.RemoveNodeCommand<Nodes.FolderNode>
+            let node = update.removedNodes[0] as AnyItemNode
+            let cmd = update.command as ImmutableTree.RemoveNodeCommand<AnyItemNode>
             let parent = cmd.parentNode
             let uid = uuidv4()
             parent.addStatus({ type: 'request-pending', id: uid })
@@ -152,16 +162,16 @@ let databaseActionsFactory = {
                 })
         }
     }),
-    newAsset: (update: ImmutableTree.Updates<Nodes.BrowserNode>) => ({
+    newAsset: (update: ImmutableTree.Updates<BrowserNode>) => ({
         when: () => {
             return update.command instanceof ImmutableTree.AddChildCommand
                 && update.addedNodes.length == 1
-                && update.addedNodes[0] instanceof Nodes.FutureNode
+                && update.addedNodes[0] instanceof FutureNode
         },
         then: () => {
-            let node = update.addedNodes[0] as Nodes.FutureNode
-            let cmd = update.command as ImmutableTree.AddChildCommand<Nodes.BrowserNode>
-            let parentNode = cmd.parentNode as Nodes.FolderNode
+            let node = update.addedNodes[0] as FutureNode
+            let cmd = update.command as ImmutableTree.AddChildCommand<BrowserNode>
+            let parentNode = cmd.parentNode as AnyFolderNode
             let uid = uuidv4()
             node.addStatus({ type: 'request-pending', id: uid })
             parentNode.addStatus({ type: 'request-pending', id: uid })
@@ -186,7 +196,7 @@ export class AssetsBrowserClient {
 
     static headers: { [key: string]: string } = {}
 
-    static execute(update: ImmutableTree.Updates<Nodes.BrowserNode>) {
+    static execute(update: ImmutableTree.Updates<BrowserNode>) {
 
         let command = Object.values(databaseActionsFactory)
             .map(actionFactory => actionFactory(update))
@@ -211,7 +221,7 @@ export class AssetsBrowserClient {
     }
 
 
-    static newDrive$(node: Nodes.GroupNode) {
+    static newDrive$(node: GroupNode) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/groups/${node.id}/drives`
         let body = { "name": "new drive" }
@@ -220,7 +230,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static deleteItem$(node: Nodes.FluxProjectNode) {
+    static deleteItem$(node: AnyItemNode) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/items/${node.id}`
         let uid = uuidv4()
@@ -229,7 +239,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static deleteFolder$(node: Nodes.FolderNode) {
+    static deleteFolder$(node: RegularFolderNode) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
 
@@ -239,7 +249,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static deleteDrive$(node: Nodes.DriveNode) {
+    static deleteDrive$(node: DriveNode) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/drives/${node.id}`
 
@@ -256,7 +266,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static newFolder$(node: Nodes.DriveNode | Nodes.FolderNode, body: { name: string, folderId: string }) {
+    static newFolder$(node: DriveNode | AnyFolderNode, body: { name: string, folderId: string }) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
 
@@ -267,7 +277,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static renameFolder$(node: Nodes.FolderNode, newName: string) {
+    static renameFolder$(node: RegularFolderNode, newName: string) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/folders/${node.id}`
         let body = { "name": newName }
@@ -275,7 +285,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static renameDrive$(node: Nodes.DriveNode, newName: string) {
+    static renameDrive$(node: DriveNode, newName: string) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/drives/${node.driveId}`
         let body = { "name": newName }
@@ -284,7 +294,7 @@ export class AssetsBrowserClient {
     }
 
 
-    static renameAsset$(node: Nodes.ItemNode, newName: string) {
+    static renameAsset$(node: AnyItemNode, newName: string) {
 
         let url = `${AssetsBrowserClient.urlBaseAssets}/${node.id}`
         let body = { "name": newName }
@@ -292,7 +302,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static move$(target: Nodes.ItemNode | Nodes.FolderNode, folder: Nodes.FolderNode | Nodes.DriveNode) {
+    static move$(target: AnyItemNode | RegularFolderNode, folder: AnyFolderNode | DriveNode) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/${target.id}/move`
         let body = { destinationFolderId: folder.id }
@@ -301,7 +311,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static borrow$(target: Nodes.ItemNode | Nodes.FolderNode, folder: Nodes.FolderNode | Nodes.DriveNode) {
+    static borrow$(target: AnyItemNode, folder: AnyFolderNode | DriveNode) {
 
         let url = `${AssetsBrowserClient.urlBaseOrganization}/${target.id}/borrow`
         let body = { destinationFolderId: folder.id }
@@ -358,7 +368,7 @@ export class AssetsBrowserClient {
         )
     }
 
-    static exposeGroup$(node: Nodes.FolderNode, { groupId, name }) {
+    static exposeGroup$(node: AnyFolderNode, { groupId, name }) {
 
         let url = AssetsBrowserClient.urlBase + `/exposed-groups/groups`
         let body = { groupId: groupId, name: name, folderId: node.id }
@@ -366,14 +376,14 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(request)
     }
 
-    static package$(node: Nodes.DriveNode) {
+    static package$(node: DriveNode) {
         let url = `/api/assets-gateway/tree/drives/${node.driveId}/package`
         let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
         return FluxLibCore.createObservableFromFetch(request)
     }
 
 
-    static unpackage$(node: Nodes.ItemNode) {
+    static unpackage$(node: AnyItemNode) {
         let url = `/api/assets-gateway/tree/items/${node.id}/unpack`
         let request = new Request(url, { method: 'PUT', headers: AssetsBrowserClient.headers })
         return FluxLibCore.createObservableFromFetch(request)
@@ -416,11 +426,11 @@ export class AssetsBrowserClient {
             map(({ items, folders }: { items: Array<any>, folders: Array<any> }) => {
 
                 return [
-                    ...folders.map((folder: any) => new Nodes.DeletedFolderNode({ id: folder.folderId, name: folder.name, driveId })),
-                    ...items.map((item: any) => new Nodes.DeletedItemNode({ id: item.itemId, name: item.name, driveId, type: item.type }))
+                    ...folders.map((folder: any) => new DeletedFolderNode({ id: folder.folderId, name: folder.name, driveId })),
+                    ...items.map((item: any) => new DeletedItemNode({ id: item.itemId, name: item.name, driveId, type: item.type }))
                 ]
             })
-        ) as Observable<Array<Nodes.BrowserNode>>
+        ) as Observable<Array<BrowserNode>>
 
     }
 
@@ -433,7 +443,7 @@ export class AssetsBrowserClient {
             map(({ items, folders }: { items: Array<any>, folders: Array<any> }) => {
                 return AssetsBrowserClient.children(groupId, driveId, folderId, { items, folders })
             })
-        ) as Observable<Array<Nodes.BrowserNode>>
+        ) as Observable<Array<BrowserNode>>
     }
 
     static getDrivesChildren$(groupId: string) {
@@ -445,13 +455,13 @@ export class AssetsBrowserClient {
             map(({ drives }) => {
 
                 return drives.map((drive: Drive) => {
-                    return new Nodes.DriveNode({
-                        id: drive.driveId, groupId: groupId, name: drive.name, driveId: drive.driveId, icon: 'fas fa-hdd',
+                    return new DriveNode({
+                        groupId: groupId, name: drive.name, driveId: drive.driveId,
                         children: AssetsBrowserClient.getFolderChildren$(groupId, drive.driveId, drive.driveId)
                     })
                 })
             })
-        ) as Observable<Array<Nodes.BrowserNode>>
+        ) as Observable<Array<BrowserNode>>
     }
 
     static getGroupsChildren$(pathParent = "") {
@@ -474,22 +484,22 @@ export class AssetsBrowserClient {
                 })
                     .map(({ id, path }) => {
 
-                        return new Nodes.GroupNode({
+                        return new GroupNode({
                             id: id,
                             name: path == "private" ? "" : path.slice(pathParent.length + 1),
-                            icon: path == "private" ? "fas fa-user" : "fas fa-users",
+                            kind: path == "private" ? "user" : "users",
                             children: AssetsBrowserClient.getDrivesChildren$(id).pipe(
                                 mergeMap((drives) => {
                                     let children$ = AssetsBrowserClient.getGroupsChildren$(path).pipe(
-                                        map((grps: [Array<Nodes.BrowserNode>]) => [...grps, ...drives]))
-                                    return children$ as Observable<Array<Nodes.BrowserNode>>
+                                        map((grps: [Array<BrowserNode>]) => [...grps, ...drives]))
+                                    return children$ as Observable<Array<BrowserNode>>
                                 })
                             )
                         })
                     })
                 return children
             })
-        ) as Observable<Array<Nodes.BrowserNode>>
+        ) as Observable<Array<BrowserNode>>
     }
 
     static dataPreview$(rawId: string): Observable<{ kind: string, content: string }> {
@@ -530,7 +540,7 @@ export class AssetsBrowserClient {
         return FluxLibCore.createObservableFromFetch(requestFluxProject)
     }
 
-    static importFluxProjects$(node: Nodes.FolderNode, assets: Array<Asset>) {
+    static importFluxProjects$(node: AnyFolderNode, assets: Array<Asset>) {
 
         let body = {
             groupId: node.groupId,
@@ -567,8 +577,8 @@ export class AssetsBrowserClient {
 
         return [
             ...folders.map((folder: Folder) => {
-                return new Nodes.FolderNode({
-                    id: folder.folderId, groupId, name: folder.name, driveId, parentFolderId: folderId,
+                return new FolderNode({
+                    folderId: folder.folderId, kind: 'regular', groupId, name: folder.name, driveId, parentFolderId: folderId,
                     children: AssetsBrowserClient.getFolderChildren$(groupId, driveId, folder.folderId)
                 })
             }), ...items.map((item: Item) => {
@@ -578,19 +588,11 @@ export class AssetsBrowserClient {
                     driveId,
                     ...item
                 }
-                if (item.kind == "flux-project")
-                    return new Nodes.FluxProjectNode(assetData)
-                if (item.kind == "story")
-                    return new Nodes.StoryNode(assetData)
-                if (item.kind == "data")
-                    return new Nodes.DataNode(assetData)
-                if (item.kind == "package")
-                    return new Nodes.PackageNode(assetData)
-                throw Error("Unknown asset type")
+                return new ItemNode(assetData as any)
 
             }), ...folderId == driveId
-                ? [new Nodes.TrashNode({
-                    id: 'trash_' + driveId, groupId: groupId, name: 'trash', driveId,
+                ? [new FolderNode({
+                    folderId: 'trash_' + driveId, kind: 'trash', parentFolderId: driveId, groupId: groupId, name: 'trash', driveId,
                     children: AssetsBrowserClient.getDeletedChildren$(groupId, driveId)
                 })]
                 : []

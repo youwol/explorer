@@ -3,7 +3,8 @@ import { BehaviorSubject, merge, Observable } from "rxjs"
 import { AppState } from "../../app.state"
 import { GroupResponse } from "@youwol/flux-youwol-essentials"
 import { delay, mapTo, take } from "rxjs/operators"
-import { Nodes } from "../../data"
+import { DownloadNode, DriveNode, HomeNode, TrashNode } from "../../nodes"
+
 
 
 
@@ -14,7 +15,7 @@ class PredefinedFolderView implements VirtualDOM {
 
     constructor(
         state: AppState,
-        node: Nodes.HomeNode | Nodes.DownloadNode | Nodes.RecentNode | Nodes.TrashNode,
+        node: HomeNode | DownloadNode | TrashNode,
         extended$: BehaviorSubject<boolean>) {
 
         let faClass = node.icon
@@ -23,7 +24,7 @@ class PredefinedFolderView implements VirtualDOM {
         this.children = [{
             class: attr$(
                 state.currentFolder$,
-                ({ folder }) => folder instanceof Object.getPrototypeOf(node).constructor
+                ({ folder }) => folder.kind == node.kind
                     ? 'fv-text-focus fv-hover-text-primary'
                     : 'fv-text-primary'
                 ,
@@ -71,7 +72,7 @@ export class PredefinedFoldersView implements VirtualDOM {
     constructor({ state, extended$ }: { state: AppState, extended$: BehaviorSubject<boolean> }) {
         this.children = children$(
             state.openFolder$.pipe(take(1)),
-            ({ folder }: { folder: Nodes.FolderNode }) => {
+            ({ folder }: { folder: DriveNode }) => {
                 let tree = state.groupsTree[folder.groupId]
                 let nodes = [
                     //groupData.getRecentNode(),

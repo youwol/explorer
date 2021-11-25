@@ -1,9 +1,9 @@
 import { attr$, child$, VirtualDOM } from "@youwol/flux-view"
 import { AppState } from "../../../app.state"
-import { Nodes } from "../../../data"
 import { Action } from "../../../actions.factory"
 import { RenamableItemView } from "./utils.view"
 import { BehaviorSubject } from "rxjs"
+import { BrowserNode, DriveNode, FolderNode, ItemNode } from "../../../nodes"
 
 
 export class DetailsContentView {
@@ -12,15 +12,15 @@ export class DetailsContentView {
     public readonly style = { 'max-height': '100%' }
     public readonly children: VirtualDOM[]
 
-    public readonly items: Nodes.BrowserNode[]
+    public readonly items: BrowserNode[]
 
     public readonly state: AppState
 
-    constructor(params: { state: AppState, items: Nodes.BrowserNode[] }) {
+    constructor(params: { state: AppState, items: BrowserNode[] }) {
 
         Object.assign(this, params)
         console.log("DetailsContentView")
-        let hoveredRow$ = new BehaviorSubject<Nodes.FolderNode | Nodes.BrowserNode>(undefined)
+        let hoveredRow$ = new BehaviorSubject<BrowserNode>(undefined)
         this.children = [
             {
                 class: 'row w-100 justify-content-between py-2 border-bottom',
@@ -37,14 +37,14 @@ export class DetailsContentView {
             {
                 class: 'flex-grow-1 overflow-auto',
                 children: this.items
-                    .map((item: Nodes.FolderNode | Nodes.ItemNode) => {
+                    .map((item: BrowserNode) => {
                         let treeId = item.id
                         let assetId = ""
                         let url = ""
-                        if (item instanceof Nodes.DataNode) {
+                        if (item instanceof ItemNode && item.kind == 'data') {
                             url = `/api/assets-gateway/raw/data/${item.rawId}`
                         }
-                        if (item instanceof Nodes.ItemNode) {
+                        if (item instanceof ItemNode) {
                             assetId = item.assetId
                         }
                         return {
@@ -64,7 +64,7 @@ export class DetailsContentView {
                                 this.state.selectItem(item)
                             },
                             ondblclick: () => {
-                                if (item instanceof Nodes.FolderNode)
+                                if (item instanceof FolderNode || item instanceof DriveNode)
                                     this.state.openFolder(item)
                             },
                             onmouseenter: () => hoveredRow$.next(item),

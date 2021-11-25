@@ -1,9 +1,8 @@
-import { attr$, child$, children$, Stream$, VirtualDOM } from "@youwol/flux-view"
+import { attr$, child$, children$, VirtualDOM } from "@youwol/flux-view"
 import { ywSpinnerView } from "@youwol/flux-youwol-essentials"
-import { BehaviorSubject, combineLatest, merge, Subject } from "rxjs"
-import { distinctUntilChanged, filter, take } from "rxjs/operators"
+import { BehaviorSubject, merge, Subject } from "rxjs"
 import { AppState, TreeGroup } from "../../app.state"
-import { Nodes } from "../../data"
+import { AnyFolderNode, FolderNode } from "../../nodes"
 import { ActionsView } from "./actions.view"
 import { DisplayMode } from "./main-panel.view"
 
@@ -64,7 +63,7 @@ export class HeaderPathView implements VirtualDOM {
                 class: 'd-flex flex-grow-1',
                 children: children$(
                     this.state.currentFolder$,
-                    ({ tree, folder }: { tree: TreeGroup, folder: Nodes.FolderNode }) => {
+                    ({ tree, folder }: { tree: TreeGroup, folder: AnyFolderNode }) => {
 
                         let path = tree.reducePath(folder.id, (node) => {
                             return node
@@ -123,7 +122,7 @@ export class HeaderPathView implements VirtualDOM {
         }
     }
 
-    pathElemView(node: Nodes.FolderNode, selectedNode: Nodes.FolderNode): VirtualDOM {
+    pathElemView(node: AnyFolderNode, selectedNode: AnyFolderNode): VirtualDOM {
         let baseClass = 'p-1 rounded d-flex align-items-center fv-pointer fv-bg-background'
         return {
             class: node.id == selectedNode.id

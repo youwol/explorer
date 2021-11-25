@@ -1,20 +1,16 @@
 import { uuidv4 } from "@youwol/flux-core"
 import { BehaviorSubject } from "rxjs"
 import { filter } from "rxjs/operators"
-import { AppState, SelectedItem, TreeGroup } from "../../app.state"
+import { TreeGroup } from "../../app.state"
 import { AssetsBrowserClient } from "../../assets-browser.client"
-import { Nodes, progressMessage, UploadStep } from "../../data"
-//import { DataApp } from "./data.view"
-
+import { AnyFolderNode, ItemNode, progressMessage, ProgressNode, UploadStep } from "../../nodes"
 
 export class DataState {
-
-    NodeType = Nodes.DataNode
 
     constructor(public readonly userTree: TreeGroup) {
     }
 
-    static uploadFile$(node: Nodes.FolderNode, file: File) {
+    static uploadFile$(node: AnyFolderNode, file: File) {
 
         let url = `/api/assets-gateway/assets/data/location/${node.id}?group-id=${node.groupId}`
         let progress$ = new BehaviorSubject(new progressMessage(file.name, UploadStep.START))
@@ -46,7 +42,7 @@ export class DataState {
         return progress$
     }
 
-    import(folder: Nodes.FolderNode, input: HTMLInputElement) {
+    import(folder: AnyFolderNode, input: HTMLInputElement) {
         let uid = uuidv4()
         folder.addStatus({ type: 'request-pending', id: uid })
 
@@ -54,7 +50,7 @@ export class DataState {
             return DataState.uploadFile$(folder, file)
         })
         allProgresses.forEach((progress$, i) => {
-            let progressNode = new Nodes.ProgressNode({
+            let progressNode = new ProgressNode({
                 name: input.files[i].name,
                 id: "progress_" + input.files[i].name,
                 progress$
@@ -67,8 +63,9 @@ export class DataState {
             ).subscribe((progress) => {
                 let uploadNode = this.userTree.getNode("progress_" + progress.fileName)
                 this.userTree.removeNode(uploadNode)
-                let child = new Nodes.DataNode({
+                let child = new ItemNode({
                     id: progress.result.treeId,
+                    kind: 'data',
                     driveId: folder.driveId,
                     groupId: folder.groupId,
                     name: progress.result.name,

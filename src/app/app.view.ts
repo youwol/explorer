@@ -5,7 +5,6 @@ import { BehaviorSubject, from } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { SideBarView } from './views/sidebar/sidebar.view'
 import { MainPanelView } from './views/main-panel/main-panel.view'
-import { Nodes } from './data'
 import { RunningApp } from './views/main-panel/running-app.view'
 
 

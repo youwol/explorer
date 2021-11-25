@@ -57,7 +57,7 @@ module.exports = {
         '@youwol/fv-tabs': "window['@youwol/fv-tabs']",
         '@youwol/cdn-client': "window['@youwol/cdn-client']",
         "@youwol/flux-files": "window['@youwol/flux-files']",
-        '@youwol/flux-youwol-essentials': "window['@youwol/flux-youwol-essentials']"
+        '@youwol/platform-essentials': "window['@youwol/platform-essentials']"
     }
     ],
     module: {

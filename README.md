@@ -1,4 +1,4 @@
-# workspace-explorer
+# explorer
 
 <p>
     <a href="https://github.com/kefranabg/readme-md-generator/graphs/commit-activity" target="_blank">
@@ -9,7 +9,7 @@
     </a>
 </p>
 
-The workspace explorer of YouWol
+The explorer of YouWol
 
 
 ## Installation, Build & Test 

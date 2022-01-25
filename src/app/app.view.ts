@@ -1,14 +1,12 @@
-import { attr$, child$, HTMLElement$, VirtualDOM } from '@youwol/flux-view'
+import { child$, VirtualDOM } from '@youwol/flux-view'
 import { BehaviorSubject } from 'rxjs'
 import {
-    SideBarView, YouwolBannerState,
+    YouwolBannerState,
     YouwolBannerView, defaultUserMenu, defaultYouWolMenu, HeaderPathView, DisplayMode,
-    FolderContentView, ExplorerState, PlatformState, MainPanelView
+    ExplorerState, MainPanelView
 } from '@youwol/platform-essentials'
-import { map, mergeMap } from 'rxjs/operators'
+import { mergeMap } from 'rxjs/operators'
 import { ChildApplicationAPI } from '@youwol/platform-essentials'
-import { TreeGroup } from '@youwol/platform-essentials/src/lib/explorer/explorer.state'
-import { AnyFolderNode } from '@youwol/platform-essentials/src/lib/explorer/nodes'
 
 
 /**

@@ -19,7 +19,7 @@ export class TopBannerView extends YouwolBannerView {
     constructor(params: { state: AppState }) {
         super({
             state: params.state.topBannerState,
-            customActionsView: new HeaderPathView({ state: params.state, class: 'mx-auto w-100 fv-bg-background d-flex align-items-center' } as any),
+            customActionsView: new HeaderPathView({ state: params.state, class: 'mx-auto w-100 d-flex align-items-center' } as any),
             userMenuView: defaultUserMenu(params.state.topBannerState),
             youwolMenuView: defaultYouWolMenu(params.state.topBannerState)
         })
@@ -69,28 +69,7 @@ export class AppView implements VirtualDOM {
 
         this.children = [
             new TopBannerView({ state: this.state }),
-            {
-                class: 'flex-grow-1 w-100 d-flex',
-                style: { minHeight: '0px' },
-                children: [
-                    new SideBarView(this.state, new BehaviorSubject(false)),
-                    {
-                        class: 'w-100 h-100 d-flex',
-                        children: [
-                            child$(
-                                this.state.currentFolder$,
-                                ({ folder }) => {
-                                    return new FolderContentView({
-                                        state: this.state,
-                                        folderId: folder.id,
-                                        groupId: folder.groupId
-                                    })
-                                }
-                            )
-                        ]
-                    }
-                ]
-            }
+            new MainPanelView({ state: this.state })
         ]
     }
 }

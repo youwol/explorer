@@ -1,10 +1,14 @@
-import { child$, VirtualDOM } from '@youwol/flux-view'
+import { attr$, child$, HTMLElement$, VirtualDOM } from '@youwol/flux-view'
 import { BehaviorSubject } from 'rxjs'
 import {
     SideBarView, YouwolBannerState,
     YouwolBannerView, defaultUserMenu, defaultYouWolMenu, HeaderPathView, DisplayMode,
-    FolderContentView, ExplorerState
+    FolderContentView, ExplorerState, PlatformState, MainPanelView
 } from '@youwol/platform-essentials'
+import { map, mergeMap } from 'rxjs/operators'
+import { ChildApplicationAPI } from '@youwol/platform-essentials'
+import { TreeGroup } from '@youwol/platform-essentials/src/lib/explorer/explorer.state'
+import { AnyFolderNode } from '@youwol/platform-essentials/src/lib/explorer/nodes'
 
 
 /**
@@ -29,6 +33,29 @@ export class AppState extends ExplorerState {
 
     constructor() {
         super()
+        ChildApplicationAPI.setProperties({
+            snippet: {
+                class: 'd-flex align-items-center px-1',
+                children: [
+                    {
+                        class: 'fas fa-user mr-1'
+                    },
+                    child$(
+                        this.currentFolder$.pipe(
+                            mergeMap(({ tree }) => tree.root$)
+                        ),
+                        (root) => ({ innerText: root.name })
+                    ),
+                    {
+                        class: 'fas fa-folder mx-1'
+                    },
+                    child$(
+                        this.currentFolder$,
+                        ({ folder }) => ({ innerText: folder.name })
+                    )
+                ]
+            }
+        })
     }
 }
 

@@ -1,6 +1,6 @@
 {
     "name": "@youwol/explorer",
-    "version": "0.0.1-next",
+    "version": "0.0.2",
     "description": "The (files & assets) explorer of YouWol",
     "author": "greinisch@youwol.com",
     "main": "dist/index.html",
@@ -64,7 +64,7 @@
             "name": "yw_pipeline_webpack_ts",
             "version": "0.0.0"
         },
-        "cdnDependencies": {            
+        "cdnDependencies": {
             "@youwol/cdn-client": "^0.0.10",
             "@youwol/flux-core": "^0.0.21",
             "@youwol/flux-view": "^0.0.10",

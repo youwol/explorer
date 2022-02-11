@@ -17,7 +17,7 @@
     },
     "license": "MIT",
     "dependencies": {
-        "@youwol/cdn-client": "^0.0.10",
+        "@youwol/cdn-client": "^0.0.11",
         "@youwol/logging": "^0.0.2",
         "@youwol/flux-core": "^0.0.21",
         "@youwol/flux-view": "^0.0.10",

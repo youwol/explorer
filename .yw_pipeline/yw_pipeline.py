@@ -1,6 +1,6 @@
 from youwol.environment.forward_declaration import YouwolEnvironment
 from youwol.environment.models import IPipelineFactory
-from youwol.environment.models_project import BrowserApp
+from youwol.environment.models_project import BrowserApp, Execution
 from youwol.pipelines.pipeline_typescript_weback_npm import pipeline, PipelineConfig
 from youwol_utils.context import Context
 
@@ -11,5 +11,11 @@ class PipelineFactory(IPipelineFactory):
         super().__init__(**kwargs)
 
     async def get(self, _env: YouwolEnvironment, context: Context):
-        config = PipelineConfig(target=BrowserApp())
+        config = PipelineConfig(target=BrowserApp(
+            icon={'class': 'fas fa-folder'},
+            displayName="Explorer",
+            execution=Execution(
+                standalone=True
+            )
+        ))
         return await pipeline(config, context)

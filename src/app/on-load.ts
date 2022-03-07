@@ -1,11 +1,6 @@
-import { render } from "@youwol/flux-view";
-import { AppView } from "./app.view";
+import { render } from '@youwol/flux-view'
+import { AppView } from './app.view'
 
-require('./style.css');
+require('./style.css')
 
-document
-    .getElementById("content")
-    .appendChild(
-        render(new AppView())
-    )
-
+document.getElementById('content').appendChild(render(new AppView()))

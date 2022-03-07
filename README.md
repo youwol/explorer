@@ -11,35 +11,40 @@
 
 The explorer of YouWol
 
-
-## Installation, Build & Test 
+## Installation, Build & Test
 
 To install the required dependencies:
+
 ```shell
-yarn 
+yarn
 ```
 
 To build for development:
+
 ```shell
 yarn build:dev
 ```
 
 To build for production:
+
 ```shell
 yarn build:prod
 ```
 
 To test:
+
 ```shell
 yarn test
 ```
 
 To run the dev server, the easiest way is to first install the local [youwol environment](https://pypi.org/project/youwol/), then:
-```shell 
-yarn start 
+
+```shell
+yarn start
 ```
 
 To generate code documentation:
+
 ```shell
 yarn doc
 ```

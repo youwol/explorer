@@ -5,4 +5,5 @@ coverage/
 junit.xml
 src/auto_generated.ts
 backup
+*.iml
 cdn.zip

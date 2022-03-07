@@ -1162,10 +1162,10 @@
   resolved "https://registry.yarnpkg.com/@youwol/logging/-/logging-0.0.2.tgz#50515dd16af5115e033f0c47cab22753d8d22c36"
   integrity sha512-OVCOP7a4KPKrFiKiQcTKap5oGLlXvcz/CtxD4PdS7Cg4lgy75vsOCF0d2w7T3KX9y9ir7V/zu1w7HL6Jvu6P3w==
 
-"@youwol/platform-essentials@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@youwol/platform-essentials/-/platform-essentials-0.0.3.tgz#f83a1ae0229d15e388ecdb9fb7e00387f75e995e"
-  integrity sha512-AQ1CrjDd/egbtmC9wlXm+jUzXHymDAkuFthYzQQWwnSlZlOfostKdrn9O31epIwaxZ1MptsX57rBBuBWGTXZEw==
+"@youwol/platform-essentials@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@youwol/platform-essentials/-/platform-essentials-0.0.4.tgz#64eab5c15531475a1536359c146849495eb34125"
+  integrity sha512-Chi0/KIqZ0O8EKPeY3gSCw7PMuOauQ72NXcsxOA3CF8HTkUPPZmcGHFZ9OgT0FdXTWR0v2iDJ7n2NkERq1kUXg==
 
 abab@^2.0.3, abab@^2.0.5:
   version "2.0.5"

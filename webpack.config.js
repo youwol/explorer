@@ -1,5 +1,4 @@
 const path = require("path");
-const webpack = require("webpack");
 const ROOT = path.resolve(__dirname, "src/app");
 const DESTINATION = path.resolve(__dirname, "dist");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -26,7 +25,7 @@ module.exports = {
       title: "explorer",
       template: "./index.html",
       filename: "./index.html",
-      baseHref: `/applications/${packageJson.name}/${packageJson.version}/dist/`,
+      baseHref: `/applications/${packageJson.name}/${packageJson.version}/`,
     }),
     new BundleAnalyzerPlugin({
       analyzerMode: "static",

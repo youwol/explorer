@@ -8,7 +8,6 @@ await install(
     modules: [
       "lodash",
       "rxjs",
-      "@youwol/flux-core",
       "@youwol/flux-view",
       "@youwol/fv-group",
       "@youwol/fv-button",

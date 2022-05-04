@@ -1,3 +1,8 @@
 .CodeMirror.cm-s-default{
     height:100%
 }
+
+
+.fv-tree-arianeLine{
+    display: none
+}

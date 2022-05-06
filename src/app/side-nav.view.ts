@@ -272,28 +272,55 @@ function headerView(state: Explorer.TreeGroup, item: Explorer.BrowserNode) {
     ) {
         return undefined
     }
-
     return {
-        class: attr$(
-            state.selectedNode$,
-            (folder): string => {
-                return folder.id == item.id ? 'fv-text-focus' : ''
-            },
-            {
-                wrapper: (d) =>
-                    `${d} d-flex align-items-center fv-pointer w-100`,
-            },
-        ),
+        class: 'align-items-center fv-pointer w-100 d-flex',
         children: [
             {
                 class: `${item.icon} mr-2`,
             },
-            {
-                innerText: item.name,
-            },
+            child$(
+                item.status$.pipe(
+                    filter((status) =>
+                        status.map((s) => s.type).includes('renaming'),
+                    ),
+                ),
+                () => {
+                    return headerRenamed(item as any, state)
+                },
+                {
+                    untilFirst: {
+                        innerText: item.name,
+                    },
+                },
+            ),
         ],
         onclick: () => {
             state.explorerState.openFolder(item as Explorer.RegularFolderNode)
+        },
+    }
+}
+
+function headerRenamed(
+    node: FolderNode<'regular'> | AnyItemNode,
+    state: Explorer.TreeGroup,
+): VirtualDOM {
+    return {
+        tag: 'input',
+        type: 'text',
+        autofocus: true,
+        style: {
+            zIndex: 200,
+        },
+        class: 'mx-2',
+        value: node.name,
+        onclick: (ev) => ev.stopPropagation(),
+        onkeydown: (ev) => {
+            if (ev.key === 'Enter') {
+                state.explorerState.rename(node, ev.target.value)
+            }
+        },
+        connectedCallback: (elem: HTMLElement) => {
+            elem.focus()
         },
     }
 }

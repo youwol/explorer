@@ -1,11 +1,9 @@
 import { child$, VirtualDOM } from '@youwol/flux-view'
 import { BehaviorSubject } from 'rxjs'
 import { Core, Explorer, TopBanner } from '@youwol/platform-essentials'
-
 import { DockableTabs } from '@youwol/fv-tabs'
-
 import { mergeMap } from 'rxjs/operators'
-import { LeftNavTab, UserDriveTab } from './side-nav.view'
+import { GroupsTab, LeftNavTab, UserDriveTab } from './side-nav.view'
 import { ContextMenuState } from './context-menu.view'
 import { ContextMenu } from '@youwol/fv-context-menu'
 
@@ -60,7 +58,7 @@ export class AppState extends Explorer.ExplorerState {
     }
 }
 
-export type LeftNavTopic = 'MySpace'
+export type LeftNavTopic = 'MySpace' | 'Groups'
 
 export class AppView implements VirtualDOM {
     class = 'h-100 w-100 d-flex flex-column fv-text-primary'
@@ -76,23 +74,20 @@ export class AppView implements VirtualDOM {
             MySpace: new UserDriveTab({
                 state: this.state,
             }),
+            Groups: new GroupsTab({
+                state: this.state,
+            }),
         }
         this.leftNavState = new DockableTabs.State({
             disposition: 'left',
             viewState$: new BehaviorSubject<DockableTabs.DisplayMode>('pined'),
-            tabs$: new BehaviorSubject(
-                Object.values(this.leftNavTabs).filter((d) => d != undefined),
-            ),
+            tabs$: new BehaviorSubject(Object.values(this.leftNavTabs)),
             selected$: new BehaviorSubject<LeftNavTopic>('MySpace'),
             persistTabsView: true,
         })
-
         let sideNav = new DockableTabs.View({
             state: this.leftNavState,
             styleOptions: { initialPanelSize: '300px' },
-        })
-        this.state.selectedItem$.subscribe((item) => {
-            console.log('selected item', item)
         })
         this.children = [
             new TopBannerView({ state: this.state }),

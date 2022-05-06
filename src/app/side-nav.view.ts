@@ -9,10 +9,6 @@ import { filter, map, mergeMap, take } from 'rxjs/operators'
 import { AssetsGateway } from '@youwol/http-clients'
 import { BehaviorSubject } from 'rxjs'
 import { Select } from '@youwol/fv-input'
-import {
-    AnyItemNode,
-    FolderNode,
-} from '@youwol/platform-essentials/src/lib/explorer/nodes'
 
 export class LeftNavTab extends DockableTabs.Tab {
     protected constructor(params: {
@@ -301,7 +297,7 @@ function headerView(state: Explorer.TreeGroup, item: Explorer.BrowserNode) {
 }
 
 function headerRenamed(
-    node: FolderNode<'regular'> | AnyItemNode,
+    node: Explorer.FolderNode<'regular'> | Explorer.AnyItemNode,
     state: Explorer.TreeGroup,
 ): VirtualDOM {
     return {

@@ -6,3 +6,12 @@
 .fv-tree-arianeLine{
     display: none
 }
+
+.fv-tree-arianeLine:hover{
+    display: block
+}
+
+.fv-tree-header:hover ~ .fv-tree-arianeLine{
+    display: block;
+    opacity:0.1
+}

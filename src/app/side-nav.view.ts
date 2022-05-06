@@ -110,7 +110,7 @@ export class GroupView implements VirtualDOM {
         Object.assign(this, params)
         this.children = [
             child$(this.explorerState.favoriteFolders$, (favoritesFolder) => {
-                return new FavoritesTabView({
+                return new FavoritesView({
                     explorerState: this.explorerState,
                     favoritesFolder: favoritesFolder.filter(
                         (f) => f.groupId == this.treeGroup.groupId,
@@ -315,7 +315,7 @@ export class FavoriteItemView implements VirtualDOM {
     }
 }
 
-export class FavoritesTabView implements VirtualDOM {
+export class FavoritesView implements VirtualDOM {
     public readonly class = 'w-100 d-flex flex-wrap overflow-auto'
     public readonly style = {
         maxHeight: '25%',

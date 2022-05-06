@@ -1,9 +1,9 @@
 import { child$, VirtualDOM } from '@youwol/flux-view'
-import { BehaviorSubject } from 'rxjs'
+import { BehaviorSubject, Observable } from 'rxjs'
 import { Core, Explorer, TopBanner } from '@youwol/platform-essentials'
 import { DockableTabs } from '@youwol/fv-tabs'
-import { mergeMap } from 'rxjs/operators'
-import { GroupsTab, LeftNavTab, UserDriveTab } from './side-nav.view'
+import { map, mergeMap } from 'rxjs/operators'
+import { GroupsTab, GroupTab, LeftNavTab, UserDriveTab } from './side-nav.view'
 import { ContextMenuState } from './context-menu.view'
 import { ContextMenu } from '@youwol/fv-context-menu'
 
@@ -58,7 +58,7 @@ export class AppState extends Explorer.ExplorerState {
     }
 }
 
-export type LeftNavTopic = 'MySpace' | 'Groups'
+export type LeftNavTopic = 'MySpace' | 'Groups' | 'Group'
 
 export class AppView implements VirtualDOM {
     class = 'h-100 w-100 d-flex flex-column fv-text-primary'
@@ -67,21 +67,24 @@ export class AppView implements VirtualDOM {
 
     public readonly leftNavState: DockableTabs.State
 
-    public readonly leftNavTabs: Record<LeftNavTopic, LeftNavTab>
+    public readonly leftNavTabs$: Observable<LeftNavTab[]>
 
     constructor() {
-        this.leftNavTabs = {
-            MySpace: new UserDriveTab({
-                state: this.state,
+        this.leftNavTabs$ = this.state.favoriteGroups$.pipe(
+            map((groups) => {
+                return [
+                    new UserDriveTab({ state: this.state }),
+                    ...groups.map((group) => {
+                        return new GroupTab({ state: this.state, group })
+                    }),
+                    new GroupsTab({ state: this.state }),
+                ]
             }),
-            Groups: new GroupsTab({
-                state: this.state,
-            }),
-        }
+        )
         this.leftNavState = new DockableTabs.State({
             disposition: 'left',
             viewState$: new BehaviorSubject<DockableTabs.DisplayMode>('pined'),
-            tabs$: new BehaviorSubject(Object.values(this.leftNavTabs)),
+            tabs$: this.leftNavTabs$,
             selected$: new BehaviorSubject<LeftNavTopic>('MySpace'),
             persistTabsView: true,
         })

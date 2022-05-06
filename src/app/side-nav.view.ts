@@ -1,5 +1,5 @@
 import { DockableTabs } from '@youwol/fv-tabs'
-import { child$, VirtualDOM } from '@youwol/flux-view'
+import { attr$, child$, VirtualDOM } from '@youwol/flux-view'
 import { LeftNavTopic } from './app.view'
 import { Explorer } from '@youwol/platform-essentials'
 import { ImmutableTree } from '@youwol/fv-tree'
@@ -39,6 +39,33 @@ export class UserDriveTab extends LeftNavTab {
                                 params.state.groupsTree[
                                     defaultUserDrive.groupId
                                 ],
+                        })
+                    },
+                )
+            },
+        })
+        Object.assign(this, params)
+    }
+}
+
+export class GroupTab extends LeftNavTab {
+    constructor(params: {
+        state: Explorer.ExplorerState
+        group: Explorer.FavoriteGroup
+    }) {
+        super({
+            topic: 'Group',
+            title: params.group.path.split('/').slice(-1)[0],
+            icon: 'fas fa-map-pin',
+            state: params.state,
+            content: () => {
+                return child$(
+                    params.state.selectGroup$(params.group.id),
+                    (treeGroup) => {
+                        return new GroupView({
+                            explorerState: params.state,
+                            treeGroup:
+                                params.state.groupsTree[treeGroup.groupId],
                         })
                     },
                 )
@@ -184,10 +211,25 @@ export class GroupsTabView implements VirtualDOM {
 
         const selectState = new Select.State(itemsData, itemsData[0].id)
         this.children = [
-            new Select.View({
-                state: selectState,
-                class: 'w-100',
-            } as any),
+            {
+                class: 'd-flex align-items-center',
+                children: [
+                    new Select.View({
+                        state: selectState,
+                        class: 'w-100',
+                    } as any),
+                    child$(
+                        selectState.selection$.pipe(
+                            map((s: GroupSelectItemData) => s.group),
+                        ),
+                        (group) =>
+                            new GroupPinBtn({
+                                explorerState: this.explorerState,
+                                groupId: group.id,
+                            }),
+                    ),
+                ],
+            },
             child$(
                 selectState.selection$.pipe(
                     mergeMap((item: GroupSelectItemData) =>
@@ -201,6 +243,42 @@ export class GroupsTabView implements VirtualDOM {
                     })
                 },
             ),
+        ]
+    }
+}
+
+export class GroupPinBtn implements VirtualDOM {
+    public readonly children: VirtualDOM[]
+    public readonly activated$ = new BehaviorSubject(true)
+    public readonly explorerState: Explorer.ExplorerState
+    public readonly groupId: string
+
+    public readonly onclick = () => {
+        this.explorerState.toggleFavoriteGroup(this.groupId)
+    }
+    constructor(params: {
+        explorerState: Explorer.ExplorerState
+        groupId: string
+    }) {
+        Object.assign(this, params)
+        console.log('GroupId', this.groupId)
+        const baseClass =
+            'fas fa-map-pin p-1 m-1 fv-hover-bg-background-alt rounded fv-pointer'
+        this.children = [
+            {
+                class: attr$(
+                    this.explorerState.favoriteGroups$.pipe(
+                        map(
+                            (groups: Explorer.FavoriteGroup[]) =>
+                                groups.find(
+                                    (group) => group.id == this.groupId,
+                                ) != undefined,
+                        ),
+                    ),
+                    (activated): string => (activated ? 'fv-text-focus' : ''),
+                    { wrapper: (d) => `${d} ${baseClass}` },
+                ),
+            },
         ]
     }
 }

@@ -93,6 +93,9 @@ export class AppView implements VirtualDOM {
             new TopBannerView({ state: this.state }),
             {
                 class: 'd-flex position-relative flex-grow-1',
+                style: {
+                    minHeight: '0px',
+                },
                 children: [
                     sideNav,
                     {

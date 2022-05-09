@@ -2,7 +2,7 @@ import { child$, VirtualDOM } from '@youwol/flux-view'
 import { BehaviorSubject, Observable } from 'rxjs'
 import { Core, Explorer, TopBanner } from '@youwol/platform-essentials'
 import { DockableTabs } from '@youwol/fv-tabs'
-import { map, mergeMap } from 'rxjs/operators'
+import { map, mergeMap, shareReplay } from 'rxjs/operators'
 import { GroupsTab, GroupTab, LeftNavTab, UserDriveTab } from './side-nav.view'
 import { CdnMessageEvent, Client } from '@youwol/cdn-client'
 
@@ -94,19 +94,27 @@ export class AppView implements VirtualDOM {
         this.leftNavTabs$ = this.state.favoriteGroups$.pipe(
             map((groups) => {
                 return [
-                    new UserDriveTab({ state: this.state }),
+                    userDriveTab,
                     ...groups.map((group) => {
-                        return new GroupTab({ state: this.state, group })
+                        if (!groupTabsCached[group.id]) {
+                            groupTabsCached[group.id] = new GroupTab({
+                                state: this.state,
+                                group,
+                                selectedTab$: selectedTabGroup$,
+                            })
+                        }
+                        return groupTabsCached[group.id]
                     }),
-                    new GroupsTab({ state: this.state }),
+                    groupsTab,
                 ]
             }),
+            shareReplay({ bufferSize: 1, refCount: true }),
         )
         this.leftNavState = new DockableTabs.State({
             disposition: 'left',
             viewState$: new BehaviorSubject<DockableTabs.DisplayMode>('pined'),
             tabs$: this.leftNavTabs$,
-            selected$: new BehaviorSubject<LeftNavTopic>('MySpace'),
+            selected$: selectedTabGroup$,
             persistTabsView: true,
         })
         let sideNav = new DockableTabs.View({

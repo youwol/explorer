@@ -4,8 +4,7 @@ import { Core, Explorer, TopBanner } from '@youwol/platform-essentials'
 import { DockableTabs } from '@youwol/fv-tabs'
 import { map, mergeMap } from 'rxjs/operators'
 import { GroupsTab, GroupTab, LeftNavTab, UserDriveTab } from './side-nav.view'
-import { ContextMenuState } from './context-menu.view'
-import { ContextMenu } from '@youwol/fv-context-menu'
+import { CdnMessageEvent, Client } from '@youwol/cdn-client'
 
 /**
  * Top banner of the application
@@ -109,19 +108,6 @@ export class AppView implements VirtualDOM {
                                     state: this.state,
                                     folderId: folder.id,
                                     groupId: folder.groupId,
-                                    connectedCallback: (elem) => {
-                                        return new ContextMenu.View({
-                                            state: new ContextMenuState({
-                                                appState: this.state,
-                                                div: elem,
-                                                item$: this.state.selectedItem$,
-                                            }),
-                                            class: 'fv-bg-background border fv-color-primary fv-text-primary',
-                                            style: {
-                                                zIndex: 20,
-                                            },
-                                        } as any)
-                                    },
                                 })
                             }),
                         ],

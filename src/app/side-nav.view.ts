@@ -338,63 +338,73 @@ export class FavoritesView implements VirtualDOM {
     }
 }
 
-function headerView(state: Explorer.TreeGroup, item: Explorer.BrowserNode) {
-    if (
-        item instanceof Explorer.ItemNode ||
-        item instanceof Explorer.FutureItemNode ||
-        item instanceof Explorer.DeletedItemNode
-    ) {
-        return undefined
+export class ExplorerFolderView implements VirtualDOM {
+    public readonly class = 'align-items-center fv-pointer w-100 d-flex'
+    public readonly treeGroup: Explorer.TreeGroup
+    public readonly folderNode: Explorer.AnyFolderNode
+
+    public readonly onclick = () => {
+        this.treeGroup.explorerState.openFolder(this.folderNode)
     }
-    return {
-        class: 'align-items-center fv-pointer w-100 d-flex',
-        children: [
+    public readonly children: VirtualDOM[]
+
+    public readonly connectedCallback = (elem: HTMLElement) => {
+        Explorer.installContextMenu({
+            node: this.folderNode,
+            div: elem,
+            state: this.treeGroup.explorerState,
+        })
+    }
+    constructor(params: {
+        treeGroup: Explorer.TreeGroup
+        folderNode: Explorer.AnyFolderNode
+    }) {
+        Object.assign(this, params)
+
+        this.children = [
             {
-                class: `${item.icon} mr-2`,
+                class: `${this.folderNode.icon} mr-2`,
             },
             child$(
-                item.status$.pipe(
+                this.folderNode.status$.pipe(
                     filter((status) =>
                         status.map((s) => s.type).includes('renaming'),
                     ),
                 ),
-                () => {
-                    return headerRenamed(item as any, state)
+                (): VirtualDOM => {
+                    return this.headerRenamed()
                 },
                 {
                     untilFirst: {
-                        innerText: item.name,
+                        innerText: this.folderNode.name,
                     },
                 },
             ),
-        ],
-        onclick: () => {
-            state.explorerState.openFolder(item as Explorer.RegularFolderNode)
-        },
+        ]
     }
-}
 
-function headerRenamed(
-    node: Explorer.FolderNode<'regular'> | Explorer.AnyItemNode,
-    state: Explorer.TreeGroup,
-): VirtualDOM {
-    return {
-        tag: 'input',
-        type: 'text',
-        autofocus: true,
-        style: {
-            zIndex: 200,
-        },
-        class: 'mx-2',
-        value: node.name,
-        onclick: (ev) => ev.stopPropagation(),
-        onkeydown: (ev) => {
-            if (ev.key === 'Enter') {
-                state.explorerState.rename(node, ev.target.value)
-            }
-        },
-        connectedCallback: (elem: HTMLElement) => {
-            elem.focus()
-        },
+    headerRenamed() {
+        return {
+            tag: 'input',
+            type: 'text',
+            autofocus: true,
+            style: {
+                zIndex: 200,
+            },
+            class: 'mx-2',
+            value: this.folderNode.name,
+            onclick: (ev) => ev.stopPropagation(),
+            onkeydown: (ev) => {
+                if (ev.key === 'Enter' && this.folderNode.kind == 'regular') {
+                    this.treeGroup.explorerState.rename(
+                        this.folderNode as Explorer.RegularFolderNode,
+                        ev.target.value,
+                    )
+                }
+            },
+            connectedCallback: (elem: HTMLElement) => {
+                elem.focus()
+            },
+        }
     }
 }

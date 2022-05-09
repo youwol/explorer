@@ -85,6 +85,11 @@ export class GroupTab extends LeftNavTab {
                                 params.state.groupsTree[treeGroup.groupId],
                         })
                     },
+                    {
+                        untilFirst: {
+                            class: 'fas fa-spinner fa-spin w-100 text-center',
+                        },
+                    },
                 )
             },
         })
@@ -315,7 +320,7 @@ export class FavoriteItemView implements VirtualDOM {
     public readonly children: VirtualDOM[]
     public readonly explorerState: Explorer.ExplorerState
     public readonly favoriteFolder: Explorer.FavoriteFolder
-
+    public readonly loadingFolder$ = new BehaviorSubject(false)
     constructor(params: {
         explorerState: Explorer.ExplorerState
         favoriteFolder: Explorer.FavoriteFolder
@@ -332,9 +337,17 @@ export class FavoriteItemView implements VirtualDOM {
                     {
                         innerText: this.favoriteFolder.name,
                     },
+                    child$(this.loadingFolder$, (isLoading) => {
+                        return isLoading
+                            ? { class: 'fas fa-folder-open fv-blink px-1' }
+                            : {}
+                    }),
                 ],
                 onclick: () => {
-                    this.explorerState.navigateTo(this.favoriteFolder.folderId)
+                    this.loadingFolder$.next(true)
+                    this.explorerState
+                        .navigateTo$(this.favoriteFolder.folderId)
+                        .subscribe(() => this.loadingFolder$.next(false))
                 },
             },
         ]

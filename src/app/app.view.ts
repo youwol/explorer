@@ -69,6 +69,28 @@ export class AppView implements VirtualDOM {
     public readonly leftNavTabs$: Observable<LeftNavTab[]>
 
     constructor() {
+        const loadingScreen = Client['initialLoadingScreen']
+        loadingScreen.next(
+            new CdnMessageEvent('fetch_user_info', 'Fetch user info...'),
+        )
+        this.state.userInfo$.subscribe(() => {
+            loadingScreen.next(
+                new CdnMessageEvent(
+                    'fetch_user_info',
+                    'Fetch user info...done',
+                ),
+            )
+        })
+        const selectedTabGroup$ = new BehaviorSubject<string>('MySpace')
+        const userDriveTab = new UserDriveTab({
+            state: this.state,
+            selectedTab$: selectedTabGroup$,
+        })
+        const groupsTab = new GroupsTab({
+            state: this.state,
+            selectedTab$: selectedTabGroup$,
+        })
+        let groupTabsCached = {}
         this.leftNavTabs$ = this.state.favoriteGroups$.pipe(
             map((groups) => {
                 return [

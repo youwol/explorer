@@ -165,27 +165,28 @@ export class TreeViewDrive extends ImmutableTree.View<Explorer.BrowserNode> {
             node instanceof Explorer.GroupNode ? 'd-none' : 'd-flex '
         }`
 
-    public readonly connectedCallback = (elem) => {
-        return new ContextMenu.View({
-            state: new ContextMenuState({
-                appState: this.explorerState as any,
-                div: elem,
-                item$: this.state.selectedNode$.pipe(map((folder) => folder)),
-            }),
-            class: 'fv-bg-background border fv-color-primary fv-text-primary',
-            style: {
-                zIndex: 20,
-            },
-        } as any)
-    }
-
     constructor(params: {
         explorerState: Explorer.ExplorerState
         treeGroup: Explorer.TreeGroup
     }) {
         super({
             state: params.treeGroup, //params.explorerState.groupsTree[params.groupId], //new TreeViewState(params),
-            headerView,
+            headerView: (
+                _state,
+                node: Explorer.AnyFolderNode | Explorer.AnyItemNode,
+            ) => {
+                if (
+                    node instanceof Explorer.ItemNode ||
+                    node instanceof Explorer.FutureItemNode ||
+                    node instanceof Explorer.DeletedItemNode
+                ) {
+                    return undefined
+                }
+                return new ExplorerFolderView({
+                    treeGroup: this.treeGroup,
+                    folderNode: node,
+                })
+            },
             options: {
                 classes: {
                     header: TreeViewDrive.wrapperHeaderClassFct,

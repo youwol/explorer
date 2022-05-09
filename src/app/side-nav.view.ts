@@ -1,37 +1,47 @@
 import { DockableTabs } from '@youwol/fv-tabs'
 import { attr$, child$, VirtualDOM } from '@youwol/flux-view'
-import { LeftNavTopic } from './app.view'
 import { Explorer } from '@youwol/platform-essentials'
 import { ImmutableTree } from '@youwol/fv-tree'
-import { ContextMenu } from '@youwol/fv-context-menu'
-import { ContextMenuState } from './context-menu.view'
-import { filter, map, mergeMap, take } from 'rxjs/operators'
+import { filter, map, mergeMap, take, tap } from 'rxjs/operators'
 import { AssetsGateway } from '@youwol/http-clients'
-import { BehaviorSubject } from 'rxjs'
+import { BehaviorSubject, Observable } from 'rxjs'
 import { Select } from '@youwol/fv-input'
+import { Client } from '@youwol/cdn-client'
 
 export class LeftNavTab extends DockableTabs.Tab {
     protected constructor(params: {
-        topic: LeftNavTopic
+        id: string
         state: Explorer.ExplorerState
         content: () => VirtualDOM
         title: string
         icon: string
     }) {
-        super({ ...params, id: params.topic })
+        super({ ...params, id: params.id })
     }
 }
 
 export class UserDriveTab extends LeftNavTab {
-    constructor(params: { state: Explorer.ExplorerState }) {
+    constructor(params: {
+        state: Explorer.ExplorerState
+        selectedTab$: Observable<string>
+    }) {
         super({
-            topic: 'MySpace',
+            id: 'MySpace',
             title: 'My space',
             icon: 'fas fa-user',
             state: params.state,
             content: () => {
                 return child$(
-                    params.state.defaultUserDrive$,
+                    params.selectedTab$.pipe(
+                        filter((id) => id == 'MySpace'),
+                        mergeMap(() => {
+                            return params.state.defaultUserDrive$
+                        }),
+                        take(1),
+                        tap(() => {
+                            Client['initialLoadingScreen'].done()
+                        }),
+                    ),
                     (defaultUserDrive) => {
                         return new GroupView({
                             explorerState: params.state,
@@ -52,16 +62,23 @@ export class GroupTab extends LeftNavTab {
     constructor(params: {
         state: Explorer.ExplorerState
         group: Explorer.FavoriteGroup
+        selectedTab$: Observable<string>
     }) {
         super({
-            topic: 'Group',
+            id: `Group#${params.group.id}`,
             title: params.group.path.split('/').slice(-1)[0],
             icon: 'fas fa-map-pin',
             state: params.state,
             content: () => {
                 return child$(
-                    params.state.selectGroup$(params.group.id),
-                    (treeGroup) => {
+                    params.selectedTab$.pipe(
+                        filter((id) => id == `Group#${params.group.id}`),
+                        mergeMap(() => {
+                            return params.state.selectGroup$(params.group.id)
+                        }),
+                        take(1),
+                    ),
+                    (treeGroup): VirtualDOM => {
                         return new GroupView({
                             explorerState: params.state,
                             treeGroup:
@@ -76,15 +93,24 @@ export class GroupTab extends LeftNavTab {
 }
 
 export class GroupsTab extends LeftNavTab {
-    constructor(params: { state: Explorer.ExplorerState }) {
+    constructor(params: {
+        state: Explorer.ExplorerState
+        selectedTab$: Observable<string>
+    }) {
         super({
-            topic: 'Groups',
+            id: 'Groups',
             title: 'Groups',
             icon: 'fas fa-users',
             state: params.state,
             content: () => {
                 return child$(
-                    params.state.userInfo$,
+                    params.selectedTab$.pipe(
+                        filter((id) => id == 'Groups'),
+                        mergeMap(() => {
+                            return params.state.userInfo$
+                        }),
+                        take(1),
+                    ),
                     (userInfo: AssetsGateway.UserInfoResponse) => {
                         return new GroupsTabView({
                             explorerState: params.state,

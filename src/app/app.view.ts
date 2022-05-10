@@ -1,10 +1,12 @@
-import { child$, VirtualDOM } from '@youwol/flux-view'
+import { attr$, child$, VirtualDOM } from '@youwol/flux-view'
 import { BehaviorSubject, Observable } from 'rxjs'
 import { Core, Explorer, TopBanner } from '@youwol/platform-essentials'
 import { DockableTabs } from '@youwol/fv-tabs'
-import { map, mergeMap, shareReplay } from 'rxjs/operators'
+import { filter, map, mergeMap, shareReplay } from 'rxjs/operators'
 import { GroupsTab, GroupTab, LeftNavTab, UserDriveTab } from './side-nav.view'
 import { CdnMessageEvent, Client } from '@youwol/cdn-client'
+import { AssetsView } from './assets.view'
+import { AssetsGateway, raiseHTTPErrors } from '@youwol/http-clients'
 
 /**
  * Top banner of the application
@@ -119,7 +121,14 @@ export class AppView implements VirtualDOM {
         })
         let sideNav = new DockableTabs.View({
             state: this.leftNavState,
-            styleOptions: { initialPanelSize: '300px' },
+            styleOptions: {
+                initialPanelSize: '300px',
+                wrapper: {
+                    style: {
+                        minWidth: '300px',
+                    },
+                },
+            },
         })
         this.children = [
             new TopBannerView({ state: this.state }),
@@ -131,15 +140,62 @@ export class AppView implements VirtualDOM {
                 children: [
                     sideNav,
                     {
-                        class: 'w-100 h-100 d-flex',
+                        class: 'w-100 h-100 d-flex flex-column',
                         children: [
-                            child$(this.state.openFolder$, ({ folder }) => {
-                                return new Explorer.FolderContentView({
-                                    state: this.state,
-                                    folderId: folder.id,
-                                    groupId: folder.groupId,
-                                })
-                            }),
+                            {
+                                class: attr$(
+                                    this.state.selectedItem$,
+                                    (item): string => (item ? 'h-25' : 'h-100'),
+                                    { wrapper: (d) => `${d} w-100` },
+                                ),
+                                children: [
+                                    child$(
+                                        this.state.openFolder$,
+                                        ({ folder }) => {
+                                            return new Explorer.FolderContentView(
+                                                {
+                                                    state: this.state,
+                                                    folderId: folder.id,
+                                                    groupId: folder.groupId,
+                                                },
+                                            )
+                                        },
+                                    ),
+                                ],
+                            },
+                            {
+                                class: attr$(
+                                    this.state.selectedItem$,
+                                    (item): string =>
+                                        item ? 'd-block h-75' : 'd-none',
+                                ),
+                                style: {
+                                    boxShadow: 'white 0px 0px 5px',
+                                },
+                                children: [
+                                    child$(
+                                        this.state.selectedItem$.pipe(
+                                            filter((d) => d != undefined),
+                                            mergeMap(
+                                                (node: Explorer.AnyItemNode) =>
+                                                    new AssetsGateway.AssetsGatewayClient().assets.getAsset$(
+                                                        {
+                                                            assetId:
+                                                                node.assetId,
+                                                        },
+                                                    ),
+                                            ),
+                                            raiseHTTPErrors(),
+                                        ),
+                                        (asset) => {
+                                            return new AssetsView({
+                                                asset,
+                                                state: this.state,
+                                            })
+                                        },
+                                    ),
+                                ],
+                            },
                         ],
                     },
                 ],

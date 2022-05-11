@@ -1,5 +1,5 @@
-.CodeMirror.cm-s-default{
-    height:100%
+.CodeMirror{
+    height:100% !important;
 }
 
 

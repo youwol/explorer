@@ -1,5 +1,5 @@
 import { attr$, child$, VirtualDOM } from '@youwol/flux-view'
-import { BehaviorSubject, Observable } from 'rxjs'
+import { BehaviorSubject, Observable, of } from 'rxjs'
 import { Core, Explorer, TopBanner } from '@youwol/platform-essentials'
 import { DockableTabs } from '@youwol/fv-tabs'
 import { filter, map, mergeMap, shareReplay } from 'rxjs/operators'
@@ -12,6 +12,7 @@ import {
 import { CdnMessageEvent, Client } from '@youwol/cdn-client'
 import { AssetsView } from './assets.view'
 import { AssetsGateway, raiseHTTPErrors } from '@youwol/http-clients'
+import { SettingsTab } from './side-nav-bottom/side-nav-bottom.view'
 
 /**
  * Top banner of the application
@@ -127,6 +128,22 @@ export class AppView implements VirtualDOM {
         let sideNav = new DockableTabs.View({
             state: this.leftNavState,
         })
+        const bottomSideNav = new DockableTabs.View({
+            state: new DockableTabs.State({
+                disposition: 'bottom',
+                viewState$: new BehaviorSubject<DockableTabs.DisplayMode>(
+                    'collapsed',
+                ),
+                tabs$: of([
+                    new SettingsTab({
+                        state: this.state,
+                    }),
+                ]),
+                selected$: new BehaviorSubject('Settings'),
+                persistTabsView: false,
+            }),
+        })
+
         this.children = [
             new TopBannerView({ state: this.state }),
             {
@@ -197,6 +214,7 @@ export class AppView implements VirtualDOM {
                     },
                 ],
             },
+            bottomSideNav,
         ]
     }
 }

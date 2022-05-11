@@ -2,7 +2,7 @@ import { VirtualDOM } from '@youwol/flux-view'
 import { AssetsBackend } from '@youwol/http-clients'
 import { Explorer, Assets } from '@youwol/platform-essentials'
 import { BehaviorSubject, of } from 'rxjs'
-import { LeftNavTab } from './side-nav.view'
+import { LeftNavTab } from './side-nav-left.view'
 import { DockableTabs } from '@youwol/fv-tabs'
 
 export class AssetsView implements VirtualDOM {

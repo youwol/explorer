@@ -8,6 +8,11 @@ import { BehaviorSubject, Observable } from 'rxjs'
 import { Select } from '@youwol/fv-input'
 import { Client } from '@youwol/cdn-client'
 
+const leftNavClasses = 'fv-bg-background fv-x-lighter h-100 overflow-auto'
+const leftNavStyle = {
+    width: '300px',
+}
+
 export class LeftNavTab extends DockableTabs.Tab {
     protected constructor(params: {
         id: string
@@ -130,6 +135,9 @@ export class GroupsTab extends LeftNavTab {
 }
 
 export class GroupView implements VirtualDOM {
+    public readonly class = leftNavClasses
+    public readonly style = leftNavStyle
+
     public readonly children: VirtualDOM[]
     public readonly explorerState: Explorer.ExplorerState
     public readonly treeGroup: Explorer.TreeGroup

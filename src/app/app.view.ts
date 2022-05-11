@@ -3,7 +3,12 @@ import { BehaviorSubject, Observable } from 'rxjs'
 import { Core, Explorer, TopBanner } from '@youwol/platform-essentials'
 import { DockableTabs } from '@youwol/fv-tabs'
 import { filter, map, mergeMap, shareReplay } from 'rxjs/operators'
-import { GroupsTab, GroupTab, LeftNavTab, UserDriveTab } from './side-nav.view'
+import {
+    GroupsTab,
+    GroupTab,
+    LeftNavTab,
+    UserDriveTab,
+} from './side-nav-left.view'
 import { CdnMessageEvent, Client } from '@youwol/cdn-client'
 import { AssetsView } from './assets.view'
 import { AssetsGateway, raiseHTTPErrors } from '@youwol/http-clients'

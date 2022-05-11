@@ -126,14 +126,6 @@ export class AppView implements VirtualDOM {
         })
         let sideNav = new DockableTabs.View({
             state: this.leftNavState,
-            styleOptions: {
-                initialPanelSize: '300px',
-                wrapper: {
-                    style: {
-                        minWidth: '300px',
-                    },
-                },
-            },
         })
         this.children = [
             new TopBannerView({ state: this.state }),

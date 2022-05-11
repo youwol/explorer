@@ -49,6 +49,7 @@ module.exports = {
             d3: 'd3',
             rxjs: 'rxjs',
             'rxjs/operators': "window['rxjs']['operators']",
+            '@youwol/http-clients': "window['@youwol/http-clients']",
             '@youwol/flux-core': "window['@youwol/flux-core']",
             '@youwol/flux-view': "window['@youwol/flux-view']",
             '@youwol/fv-group': "window['@youwol/fv-group']",
@@ -62,6 +63,8 @@ module.exports = {
             '@youwol/flux-files': "window['@youwol/flux-files']",
             '@youwol/platform-essentials':
                 "window['@youwol/platform-essentials']",
+            codemirror: 'CodeMirror',
+            typescript: 'ts',
         },
     ],
     module: {

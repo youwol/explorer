@@ -11,6 +11,7 @@ await install(
         modules: [
             'lodash',
             'rxjs',
+            'marked',
             '@youwol/flux-view',
             '@youwol/fv-group',
             '@youwol/fv-button',

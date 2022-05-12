@@ -1,8 +1,8 @@
 import { child$, VirtualDOM } from '@youwol/flux-view'
 import { AssetsBackend } from '@youwol/http-clients'
 import { Explorer, Assets } from '@youwol/platform-essentials'
-import { BehaviorSubject, from, Observable } from 'rxjs'
-import { LeftNavTab } from './side-nav-left.view'
+import { BehaviorSubject, from } from 'rxjs'
+import { LeftNavTab } from './side-nav-left/side-nav-left.view'
 import { DockableTabs } from '@youwol/fv-tabs'
 import { map, mergeMap } from 'rxjs/operators'
 import * as cdnClient from '@youwol/cdn-client'
@@ -81,27 +81,11 @@ export class AssetsView implements VirtualDOM {
 
 function getBackgroundChild$(
     asset: AssetsBackend.GetAssetResponse,
-    explorerSettings$: Observable<() => Promise<Explorer.ExplorerSettings>>,
+    state: Explorer.ExplorerState,
 ) {
-    return child$(
-        explorerSettings$.pipe(
-            mergeMap((settings) => {
-                return from(settings())
-            }),
-            map((settings) => {
-                return settings
-                    .applications({
-                        asset: asset,
-                        cdnClient,
-                        fluxView,
-                    })
-                    .find((assetDefault) => assetDefault.applicable())
-            }),
-        ),
-        (defaultAsset) => {
-            return defaultAsset ? defaultAsset.background : {}
-        },
-    )
+    return child$(Explorer.defaultOpeningApp$(state, asset), (defaultAsset) => {
+        return defaultAsset ? defaultAsset.background : {}
+    })
 }
 export class GeneralTab extends LeftNavTab {
     constructor(params: {
@@ -120,10 +104,7 @@ export class GeneralTab extends LeftNavTab {
                         position: 'relative',
                     },
                     children: [
-                        getBackgroundChild$(
-                            params.asset,
-                            params.state.explorerSettings$,
-                        ),
+                        getBackgroundChild$(params.asset, params.state),
                         new Assets.AssetOverview({
                             asset: {
                                 ...params.asset,
@@ -157,10 +138,7 @@ export class PermissionsTab extends LeftNavTab {
                         position: 'relative',
                     },
                     children: [
-                        getBackgroundChild$(
-                            params.asset,
-                            params.state.explorerSettings$,
-                        ),
+                        getBackgroundChild$(params.asset, params.state),
                         new Assets.AssetPermissionsView({
                             asset: params.asset,
                         }),

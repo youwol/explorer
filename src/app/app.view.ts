@@ -8,7 +8,7 @@ import {
     GroupTab,
     LeftNavTab,
     UserDriveTab,
-} from './side-nav-left.view'
+} from './side-nav-left/side-nav-left.view'
 import { CdnMessageEvent, Client } from '@youwol/cdn-client'
 import { AssetsView } from './assets.view'
 import { AssetsGateway, raiseHTTPErrors } from '@youwol/http-clients'

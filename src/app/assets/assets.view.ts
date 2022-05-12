@@ -1,5 +1,5 @@
 import { child$, VirtualDOM } from '@youwol/flux-view'
-import { AssetsBackend } from '@youwol/http-clients'
+import { AssetsBackend, AssetsGateway } from '@youwol/http-clients'
 import { Explorer, Assets } from '@youwol/platform-essentials'
 import { BehaviorSubject, from } from 'rxjs'
 import { LeftNavTab } from '../side-nav-left/side-nav-left.view'
@@ -37,6 +37,7 @@ export class AssetsView implements VirtualDOM {
                     asset: this.asset,
                     cdnClient,
                     fluxView,
+                    assetsGtwClient: new AssetsGateway.AssetsGatewayClient(),
                 }).filter((preview) => preview.applicable())
             }),
             map((previews) => {

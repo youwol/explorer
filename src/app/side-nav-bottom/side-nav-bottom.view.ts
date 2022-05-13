@@ -1,6 +1,6 @@
 import { DockableTabs } from '@youwol/fv-tabs'
 import { child$, VirtualDOM } from '@youwol/flux-view'
-import { Explorer } from '@youwol/platform-essentials'
+import { Explorer, Core } from '@youwol/platform-essentials'
 import { combineLatest, from } from 'rxjs'
 import { mergeMap, shareReplay } from 'rxjs/operators'
 import { install } from '@youwol/cdn-client'
@@ -11,14 +11,23 @@ const bottomNavStyle = {
 }
 
 const defaultSrc = `
-import {ExplorerSettings} from './explorer-settings'
+import {Installer} from './installer'
 
-async function getSettings() : Promise<ExplorerSettings>{
-    return { 
-        contextMenuActions:[]
-    }
+async function install(installer: Installer) : Promise<Installer>{
+
+    return installer.with({
+        fromLibraries:["@youwol/installer-youwol-dev"],
+        fromManifests:[{ 
+            id:"my-custom-installer",
+            contextMenuActions: () => [],
+            assetPreviews: () => [],
+            openWithApps: () => [],
+            applications: [],
+            applicationsData: {}
+        }]
+    })
 }
-return getSettings
+return install
 `
 
 export class BottomNavTab extends DockableTabs.Tab {
@@ -72,15 +81,24 @@ export class SettingsView implements VirtualDOM {
         this.children = [
             child$(
                 combineLatest([
-                    Explorer.RequestsExecutor.getExplorerSettings(),
+                    Core.RequestsExecutor.getInstallerScript(),
                     fetchTypescriptCodeMirror$().pipe(
                         mergeMap(() => from(import('./ts-code-editor.view'))),
                     ),
                 ]),
-                ([settings, mdle]) => {
-                    return new mdle.TsCodeEditorView({
-                        src: settings['tsSrc'] || defaultSrc,
-                        explorerState: params.state,
+                ([installerScript, mdle]) => {
+                    const ideState = new mdle.CodeIdeState({
+                        files: {
+                            path: './index.ts',
+                            content: installerScript.tsSrc
+                                ? installerScript.tsSrc
+                                : defaultSrc,
+                        },
+                        entryPoint: './index.ts',
+                        appState: params.state,
+                    })
+                    return new mdle.CodeIdeView({
+                        ideState,
                     })
                 },
             ),

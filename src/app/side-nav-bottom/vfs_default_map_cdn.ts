@@ -101,9 +101,9 @@ export function createDefaultMapFromCDN(
         url: `${getUrlBase(
             '@youwol/platform-essentials',
             'latest',
-        )}/dist/lib/explorer/explorer-settings.d.ts`,
+        )}/dist/lib/core/installer.d.ts`,
     }).then(({ content }) => {
-        fsMap.set(`/explorer-settings.ts`, content)
+        fsMap.set(`/installer.ts`, content)
     })
 
     return Promise.all([...promises, interfaces]).then(() => {

@@ -1,75 +1,124 @@
 import { CodeEditorView } from '../common/code-editor.view'
-import * as ts from 'typescript'
 import { BehaviorSubject } from 'rxjs'
 import { createDefaultMapFromCDN } from './vfs_default_map_cdn'
 import CodeMirror from 'codemirror'
 import { filter, map, take, withLatestFrom } from 'rxjs/operators'
-import { Explorer } from '@youwol/platform-essentials'
-import { ModuleKind } from 'typescript'
+import { Core, Explorer } from '@youwol/platform-essentials'
+import * as ts from 'typescript'
 import {
     createSystem,
     createVirtualTypeScriptEnvironment,
 } from '@typescript/vfs'
+import { VirtualDOM } from '@youwol/flux-view'
 
-export class TsCodeEditorView extends CodeEditorView {
-    public readonly fsMap$ = new BehaviorSubject(undefined)
-    public readonly explorerState: Explorer.ExplorerState
+export class SourceCode {
+    path: SourcePath
+    content: string
+}
+
+type SourcePath = string
+
+export class CodeIdeState {
+    public readonly appState: Explorer.ExplorerState
+
+    public readonly entryPoint: SourcePath
+    public readonly currentFile$: BehaviorSubject<SourceCode>
+
+    public readonly fsMap$ = new BehaviorSubject<Map<string, string>>(undefined)
+
+    public readonly config = {
+        lineNumbers: true,
+        theme: 'blackboard',
+        lineWrapping: false,
+        gutters: ['CodeMirror-lint-markers'],
+        indentUnit: 4,
+        lint: {
+            options: {
+                editorKind: 'TsCodeEditorView',
+                esversion: 2021,
+            },
+        },
+        extraKeys: {
+            'Ctrl-Enter': () => {
+                this.currentFile$
+                    .pipe(
+                        take(1),
+                        map((file) => {
+                            let transpiled = ts
+                                .transpileModule(file.content, {
+                                    compilerOptions,
+                                })
+                                .outputText.replace('export {};', '')
+                            return {
+                                tsSrc: file.content,
+                                jsSrc: transpiled,
+                            }
+                        }),
+                    )
+                    .subscribe((script) => {
+                        Core.Installer.setInstallerScript(script)
+                    })
+            },
+        },
+    }
 
     constructor(params: {
-        src: string
-        explorerState: Explorer.ExplorerState
+        files: SourceCode[] | SourceCode
+        entryPoint: SourcePath
+        appState: Explorer.ExplorerState
     }) {
-        super({
-            src$: new BehaviorSubject<string>(params.src),
-            language: 'text/typescript',
-            config: {
-                lineNumbers: true,
-                theme: 'blackboard',
-                lineWrapping: false,
-                gutters: ['CodeMirror-lint-markers'],
-                indentUnit: 4,
-                lint: {
-                    options: {
-                        editorKind: 'TsCodeEditorView',
-                        esversion: 2021,
-                    },
-                },
-                extraKeys: {
-                    'Ctrl-Enter': () => {
-                        this.nativeEditor$
-                            .pipe(
-                                take(1),
-                                map((native) => {
-                                    let transpiled = ts
-                                        .transpileModule(native.getValue(), {
-                                            compilerOptions,
-                                        })
-                                        .outputText.replace('export {};', '')
-                                    return {
-                                        tsSrc: native.getValue(),
-                                        jsSrc: transpiled,
-                                    }
-                                }),
-                            )
-                            .subscribe((settings) => {
-                                params.explorerState.setExplorerSettingsSrc(
-                                    settings,
-                                )
-                            })
-                    },
-                },
-            },
-        })
+        Object.assign(this, params)
+        const files = Array.isArray(params.files)
+            ? params.files
+            : [params.files]
 
+        this.currentFile$ = new BehaviorSubject<SourceCode>(
+            files.find((sourceCode) => {
+                return sourceCode.path == this.entryPoint
+            }),
+        )
         createDefaultMapFromCDN(
             { target: ts.ScriptTarget.ES2020 },
             '4.6.2',
         ).then((fsMap) => {
+            files.forEach((file) => {
+                fsMap.set(file.path.substring(1), file.content)
+            })
             this.fsMap$.next(fsMap)
         })
-        this.fsMap$
+
+        this.currentFile$.subscribe((file) => {
+            const fsMap = this.fsMap$.getValue()
+            fsMap && fsMap.set(file.path.substring(1), file.content)
+            fsMap && this.fsMap$.next(fsMap)
+        })
+    }
+}
+
+export class CodeIdeView implements VirtualDOM {
+    public readonly class = 'd-flex h-100'
+    public readonly children: VirtualDOM[]
+
+    constructor(params: { ideState: CodeIdeState }) {
+        Object.assign(this, params)
+        this.children = [new TsCodeEditorView(params)]
+    }
+}
+
+export class TsCodeEditorView extends CodeEditorView {
+    public readonly ideState: CodeIdeState
+
+    constructor(params: { ideState: CodeIdeState }) {
+        super({
+            file$: params.ideState.currentFile$,
+            language: 'text/typescript',
+            config: params.ideState.config,
+        })
+        Object.assign(this, params)
+
+        this.ideState.fsMap$
             .pipe(
-                filter((d) => d),
+                filter((d) => d != undefined),
                 withLatestFrom(this.nativeEditor$),
                 take(1),
             )
@@ -81,7 +130,7 @@ export class TsCodeEditorView extends CodeEditorView {
             if (options.editorKind != 'TsCodeEditorView') {
                 return []
             }
-            let fsMapBase = this.fsMap$.getValue()
+            let fsMapBase = this.ideState.fsMap$.getValue()
             if (!fsMapBase) return
             const highlights = getHighlights(fsMapBase, text)
             return (
@@ -122,16 +171,16 @@ export class SrcHighlight {
         const to_location = diagnostic.file.getLineAndCharacterOfPosition(
             diagnostic.start + diagnostic.length,
         )
-        console.log(diagnostic)
         this.to = { line: to_location.line, ch: to_location.character }
     }
 }
 
 export const compilerOptions = {
     target: ts.ScriptTarget.ES2020,
-    module: ModuleKind.ES2020,
+    module: ts.ModuleKind.ES2020,
     esModuleInterop: true,
     noImplicitAny: false,
+    baseUrl: '/',
 }
 
 export function getHighlights(fsMap, src) {
@@ -143,6 +192,7 @@ export function getHighlights(fsMap, src) {
         ts,
         compilerOptions,
     )
+
     return [
         ...env.languageService.getSyntacticDiagnostics('index.ts'),
         ...env.languageService.getSemanticDiagnostics('index.ts'),

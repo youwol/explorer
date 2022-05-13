@@ -1,6 +1,14 @@
-import { BehaviorSubject, ReplaySubject } from 'rxjs'
+import { BehaviorSubject, combineLatest, ReplaySubject } from 'rxjs'
 import { HTMLElement$, VirtualDOM } from '@youwol/flux-view'
 import CodeMirror from 'codemirror'
+import { distinctUntilChanged } from 'rxjs/operators'
+
+export class SourceCode {
+    path: SourcePath
+    content: string
+}
+
+type SourcePath = string
 
 export class CodeEditorView {
     public readonly config = {
@@ -15,7 +23,7 @@ export class CodeEditorView {
     public readonly style = {
         'font-size': 'initial',
     }
-    public readonly src$: BehaviorSubject<string>
+    public readonly file$: BehaviorSubject<SourceCode>
     public readonly change$ = new ReplaySubject<CodeMirror.EditorChange[]>(1)
     public readonly cursor$ = new ReplaySubject<CodeMirror.Position>(1)
     public readonly children: VirtualDOM[]
@@ -23,7 +31,7 @@ export class CodeEditorView {
     public readonly nativeEditor$ = new ReplaySubject<CodeMirror.Editor>(1)
 
     constructor(params: {
-        src$: BehaviorSubject<string>
+        file$: BehaviorSubject<SourceCode>
         language: string
         config?: unknown
     }) {
@@ -31,8 +39,16 @@ export class CodeEditorView {
         const config = {
             ...this.config,
             mode: this.language,
-            value: this.src$.getValue(),
+            value: this.file$.getValue().content,
         }
+        combineLatest([
+            this.file$.pipe(
+                distinctUntilChanged((f1, f2) => f1.path == f2.path),
+            ),
+            this.nativeEditor$,
+        ]).subscribe(([file, nativeEditor]) => {
+            nativeEditor.setValue(file.content)
+        })
         this.children = [
             {
                 id: 'code-mirror-editor',
@@ -49,7 +65,10 @@ export class CodeEditorView {
                         ) {
                             return
                         }
-                        this.src$.next(editor.getValue())
+                        this.file$.next({
+                            content: editor.getValue(),
+                            path: this.file$.getValue().path,
+                        })
                     })
                     elem.querySelector('.CodeMirror').classList.add('h-100')
                     editor.on('cursorActivity', () => {

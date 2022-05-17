@@ -154,14 +154,18 @@ export class AppView implements VirtualDOM {
                 children: [
                     sideNav,
                     {
-                        class: 'w-100 h-100 d-flex flex-column',
+                        class: 'w-100 h-100 d-flex',
                         children: [
                             {
                                 class: attr$(
                                     this.state.selectedItem$,
-                                    (item): string => (item ? 'h-25' : 'h-100'),
-                                    { wrapper: (d) => `${d} w-100` },
+                                    (item): string => (item ? 'w-25' : 'w-50'),
+                                    { wrapper: (d) => `${d} h-100` },
                                 ),
+                                style: {
+                                    minWidth: '250px',
+                                    maxWidth: '400px',
+                                },
                                 children: [
                                     child$(
                                         this.state.openFolder$,
@@ -181,7 +185,7 @@ export class AppView implements VirtualDOM {
                                 class: attr$(
                                     this.state.selectedItem$,
                                     (item): string =>
-                                        item ? 'd-block h-75' : 'd-none',
+                                        item ? 'd-block w-75' : 'd-none',
                                 ),
                                 style: {
                                     boxShadow: 'white 0px 0px 5px',

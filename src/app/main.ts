@@ -19,7 +19,10 @@ await install(
             '@youwol/fv-tabs',
             '@youwol/fv-input',
             '@youwol/fv-context-menu',
-            '@youwol/platform-essentials',
+            '@youwol/os-core',
+            '@youwol/os-explorer',
+            '@youwol/os-top-banner',
+            '@youwol/os-asset',
         ],
         css: [
             'bootstrap#4.4.1~bootstrap.min.css',

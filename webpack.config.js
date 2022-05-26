@@ -44,13 +44,7 @@ module.exports = {
     },
     externals: [
         {
-            'reflect-metadata': 'Reflect',
-            lodash: '_',
-            d3: 'd3',
-            rxjs: 'rxjs',
             'rxjs/operators': "window['rxjs']['operators']",
-            '@youwol/http-clients': "window['@youwol/http-clients']",
-            '@youwol/flux-core': "window['@youwol/flux-core']",
             '@youwol/flux-view': "window['@youwol/flux-view']",
             '@youwol/fv-group': "window['@youwol/fv-group']",
             '@youwol/fv-context-menu': "window['@youwol/fv-context-menu']",
@@ -60,11 +54,14 @@ module.exports = {
             '@youwol/fv-tabs': "window['@youwol/fv-tabs']",
             '@youwol/cdn-client': "window['@youwol/cdn-client']",
             '@youwol/http-client': "window['@youwol/http-client']",
-            '@youwol/flux-files': "window['@youwol/flux-files']",
-            '@youwol/platform-essentials':
-                "window['@youwol/platform-essentials']",
-            codemirror: 'CodeMirror',
-            typescript: 'ts',
+            '@youwol/os-core': "window['@youwol/os-core']",
+            '@youwol/os-explorer': "window['@youwol/os-explorer']",
+            '@youwol/os-asset': "window['@youwol/os-asset']",
+            '@youwol/os-top-banner': "window['@youwol/os-top-banner']",
+            'reflect-metadata': 'Reflect',
+            lodash: '_',
+            d3: 'd3',
+            rxjs: 'rxjs',
         },
     ],
     module: {

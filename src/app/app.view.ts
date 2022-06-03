@@ -143,12 +143,16 @@ export class MainPanelView implements VirtualDOM {
                                         node.assetId,
                                     ).pipe(
                                         map((resp) => {
-                                            return node.origin.local
-                                                ? resp
-                                                : {
-                                                      ...resp,
-                                                      write: false,
-                                                  }
+                                            if (
+                                                !node.origin ||
+                                                node.origin.local
+                                            ) {
+                                                return resp
+                                            }
+                                            return {
+                                                ...resp,
+                                                write: false,
+                                            }
                                         }),
                                     ),
                                 ]),

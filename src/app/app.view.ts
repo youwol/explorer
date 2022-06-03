@@ -124,7 +124,7 @@ export class MainPanelView implements VirtualDOM {
             },
             {
                 class: attr$(this.state.selectedItem$, (item): string =>
-                    item ? 'd-block w-75' : 'd-none',
+                    item ? 'd-block flex-grow-1' : 'd-none',
                 ),
                 style: {
                     boxShadow: 'white 0px 0px 5px',

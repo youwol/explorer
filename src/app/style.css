@@ -1,3 +1,17 @@
-.CodeMirror.cm-s-default{
-    height:100%
+.CodeMirror{
+    height:100% !important;
+}
+
+
+.fv-tree-arianeLine{
+    display: none
+}
+
+.fv-tree-arianeLine:hover{
+    display: block
+}
+
+.fv-tree-header:hover ~ .fv-tree-arianeLine{
+    display: block;
+    opacity:0.1
 }

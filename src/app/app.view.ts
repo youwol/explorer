@@ -3,8 +3,9 @@ import * as OsCore from '@youwol/os-core'
 import * as OsExplorer from '@youwol/os-explorer'
 import * as OsBanner from '@youwol/os-top-banner'
 import * as OsAsset from '@youwol/os-asset'
-import { filter, mergeMap } from 'rxjs/operators'
+import { filter, map, mergeMap } from 'rxjs/operators'
 import { CdnMessageEvent, Client } from '@youwol/cdn-client'
+import { combineLatest } from 'rxjs'
 /**
  * Top banner of the application
  */
@@ -134,12 +135,29 @@ export class MainPanelView implements VirtualDOM {
                         this.state.selectedItem$.pipe(
                             filter((d) => d != undefined),
                             mergeMap((node: OsExplorer.ItemNode) =>
-                                OsCore.RequestsExecutor.getAsset(node.assetId),
+                                combineLatest([
+                                    OsCore.RequestsExecutor.getAsset(
+                                        node.assetId,
+                                    ),
+                                    OsCore.RequestsExecutor.getPermissions(
+                                        node.assetId,
+                                    ).pipe(
+                                        map((resp) => {
+                                            return node.origin.local
+                                                ? resp
+                                                : {
+                                                      ...resp,
+                                                      write: false,
+                                                  }
+                                        }),
+                                    ),
+                                ]),
                             ),
                         ),
-                        (asset) => {
+                        ([asset, permissions]) => {
                             return new OsAsset.AssetView({
                                 asset,
+                                permissions,
                             })
                         },
                     ),

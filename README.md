@@ -1,45 +1,52 @@
-# explorer
+# Stories
 
-<p>
-    <a href="https://github.com/kefranabg/readme-md-generator/graphs/commit-activity" target="_blank">
-        <img alt="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg" />
-    </a>
-    <a href="https://github.com/kefranabg/readme-md-generator/blob/master/LICENSE" target="_blank">
-        <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-    </a>
-</p>
+The [**Explorer** application](https://platform.youwol.com/applications/@youwol/explorer/latest) is the 'files explorer'
+application of YouWol.
 
-The explorer of YouWol
+User guide can be found [here](https://platform.youwol.com/documentation/@youwol/explorer).
 
+Developers' documentation, coverage and bundle's analysis can be found
+[here](https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/explorer).
 
-## Installation, Build & Test 
+## Installation, Build & Test
 
 To install the required dependencies:
+
 ```shell
-yarn 
+yarn
 ```
 
 To build for development:
+
 ```shell
 yarn build:dev
 ```
 
 To build for production:
+
 ```shell
 yarn build:prod
 ```
 
-To test:
+Tests require [py-youwol](https://platform.youwol.com/documentation/py-youwol)
+to run on port 2001 using the configuration defined [here](https://github.com/youwol/integration-tests-conf).
+
 ```shell
 yarn test
 ```
 
-To run the dev server, the easiest way is to first install the local [youwol environment](https://pypi.org/project/youwol/), then:
-```shell 
-yarn start 
-```
+To start the 'dev-server':
+- add `CdnOverride(packageName="@youwol/explorer", port=3008)` in your
+  [YouWol configuration file](https://platform.youwol.com/documentation/py-youwol/configuration)
+  (in the `dispatches` list).
+- run [py-youwol](https://platform.youwol.com/documentation/py-youwol)
+- then execute
+  ```shell
+  yarn start
+  ```
 
 To generate code documentation:
+
 ```shell
 yarn doc
 ```

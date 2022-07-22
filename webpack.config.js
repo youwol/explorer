@@ -88,7 +88,7 @@ module.exports = {
             },
         ],
     },
-    devtool: 'cheap-module-source-map',
+    devtool: 'source-map',
     devServer: {
         static: {
             directory: path.join(__dirname, './src'),

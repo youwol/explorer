@@ -6,8 +6,10 @@ import * as OsAsset from '@youwol/os-asset'
 import { filter, map, mergeMap } from 'rxjs/operators'
 import { CdnMessageEvent, Client } from '@youwol/cdn-client'
 import { combineLatest } from 'rxjs'
+
 /**
- * Top banner of the application
+ *
+ * @category View
  */
 export class TopBannerView extends OsBanner.TopBannerView {
     constructor(params: { state: AppState }) {
@@ -20,6 +22,10 @@ export class TopBannerView extends OsBanner.TopBannerView {
     }
 }
 
+/**
+ *
+ * @category State
+ */
 export class AppState extends OsExplorer.ExplorerState {
     constructor() {
         super()
@@ -48,10 +54,26 @@ export class AppState extends OsExplorer.ExplorerState {
     }
 }
 
+/**
+ *
+ * @category View
+ */
 export class AppView implements VirtualDOM {
-    class = 'h-100 w-100 d-flex flex-column fv-text-primary'
-    state = new AppState()
-    children: VirtualDOM[]
+    /**
+     * @group Immutable DOM Constants
+     */
+    public readonly class = 'h-100 w-100 d-flex flex-column fv-text-primary'
+
+    /**
+     * @group States
+     */
+
+    public readonly state = new AppState()
+
+    /**
+     * @group Immutable DOM Constants
+     */
+    public readonly children: VirtualDOM[]
 
     constructor() {
         const loadingScreen = Client['initialLoadingScreen']
@@ -89,14 +111,32 @@ export class AppView implements VirtualDOM {
     }
 }
 
+/**
+ * @category View
+ */
 export class MainPanelView implements VirtualDOM {
     static ClassSelector = 'main-panel-view'
+
+    /**
+     * @group Immutable DOM Constants
+     */
     public readonly class = `${MainPanelView.ClassSelector} w-100 h-100 d-flex`
+
+    /**
+     * @group Immutable DOM Constants
+     */
     public readonly style = {
         minHeight: '0px',
     }
+
+    /**
+     * @group Immutable DOM Constants
+     */
     public readonly children: VirtualDOM[]
 
+    /**
+     * @group States
+     */
     public readonly state: OsExplorer.ExplorerState
 
     constructor(params: { state: OsExplorer.ExplorerState }) {

@@ -1,6 +1,6 @@
 {
     "name": "@youwol/explorer",
-    "version": "0.1.3-wip",
+    "version": "0.1.3",
     "description": "The (files & assets) explorer of YouWol",
     "author": "greinisch@youwol.com",
     "main": "dist/index.html",

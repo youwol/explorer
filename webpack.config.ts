@@ -30,7 +30,7 @@ const webpackConfig: webpack.Configuration = {
         new HtmlWebpackPlugin({
             template: './index.html',
             filename: './index.html',
-            baseHref: `/applications/${setup.name}/${setup.version}/`,
+            baseHref: `/applications/${setup.name}/${setup.version}/dist/`,
         }),
         new BundleAnalyzerPlugin({
             analyzerMode: 'static',

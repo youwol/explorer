@@ -35,7 +35,7 @@ template = Template(
     ),
     userGuide=True,
     devServer=DevServer(
-        port=3004
+        port=3008
     )
 )
 

@@ -1,12 +1,19 @@
-const path = require('path')
+import * as path from 'path'
+// Do not shorten following import, it will cause webpack.config file to not compile anymore
+import { setup } from './src/auto-generated'
+import * as webpack from 'webpack'
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
+import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+
+// This line is required to get type's definition of 'devServer' attribute.
+import 'webpack-dev-server';
+
 const ROOT = path.resolve(__dirname, 'src/app')
 const DESTINATION = path.resolve(__dirname, 'dist')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
 
-const packageJson = require('./package.json')
-module.exports = {
+
+const webpackConfig: webpack.Configuration = {
     context: ROOT,
     mode: 'development',
     entry: {
@@ -21,11 +28,9 @@ module.exports = {
             insert: '#css-anchor',
         }),
         new HtmlWebpackPlugin({
-            //hash: true,
-            title: 'explorer',
             template: './index.html',
             filename: './index.html',
-            baseHref: `/applications/${packageJson.name}/${packageJson.version}/`,
+            baseHref: `/applications/${setup.name}/${setup.version}/`,
         }),
         new BundleAnalyzerPlugin({
             analyzerMode: 'static',
@@ -37,33 +42,11 @@ module.exports = {
         filename: '[name].[contenthash].js',
         path: DESTINATION,
     },
-
     resolve: {
         extensions: ['.ts', '.js'],
         modules: [ROOT, 'node_modules'],
     },
-    externals: [
-        {
-            'rxjs/operators': "window['rxjs']['operators']",
-            '@youwol/flux-view': "window['@youwol/flux-view']",
-            '@youwol/fv-group': "window['@youwol/fv-group']",
-            '@youwol/fv-context-menu': "window['@youwol/fv-context-menu']",
-            '@youwol/fv-tree': "window['@youwol/fv-tree']",
-            '@youwol/fv-input': "window['@youwol/fv-input']",
-            '@youwol/fv-button': "window['@youwol/fv-button']",
-            '@youwol/fv-tabs': "window['@youwol/fv-tabs']",
-            '@youwol/cdn-client': "window['@youwol/cdn-client']",
-            '@youwol/http-client': "window['@youwol/http-client']",
-            '@youwol/os-core': "window['@youwol/os-core']",
-            '@youwol/os-explorer': "window['@youwol/os-explorer']",
-            '@youwol/os-asset': "window['@youwol/os-asset']",
-            '@youwol/os-top-banner': "window['@youwol/os-top-banner']",
-            'reflect-metadata': 'Reflect',
-            lodash: '_',
-            d3: 'd3',
-            rxjs: 'rxjs',
-        },
-    ],
+    externals: setup.externals,
     module: {
         rules: [
             /****************
@@ -94,6 +77,7 @@ module.exports = {
             directory: path.join(__dirname, './src'),
         },
         compress: true,
-        port: 3008,
+        port: 3004,
     },
 }
+export default webpackConfig

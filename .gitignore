@@ -3,6 +3,7 @@ node_modules
 dist/
 coverage/
 junit.xml
-src/auto_generated.ts
-backup
 cdn.zip
+__pycache__
+*.iml
+.template

@@ -61,7 +61,7 @@ const exportedSymbols = {
 export const setup = {
     name:'@youwol/explorer',
         assetId:'QHlvdXdvbC9leHBsb3Jlcg==',
-    version:'0.2.0',
+    version:'0.2.1',
     shortDescription:"The (files & assets) explorer of YouWol.",
     developerDocumentation:'https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/explorer',
     npmPackage:'https://www.npmjs.com/package/@youwol/explorer',

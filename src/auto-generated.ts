@@ -1,12 +1,12 @@
 
 const runTimeDependencies = {
     "load": {
-        "@youwol/os-core": "^0.1.0",
-        "@youwol/os-asset": "^0.1.0",
-        "@youwol/os-explorer": "^0.1.0",
-        "@youwol/os-top-banner": "^0.1.0",
-        "@youwol/cdn-client": "^1.0.0",
-        "@youwol/flux-view": "^1.0.0",
+        "@youwol/os-core": "^0.1.1",
+        "@youwol/os-asset": "^0.1.1",
+        "@youwol/os-explorer": "^0.1.1",
+        "@youwol/os-top-banner": "^0.1.1",
+        "@youwol/cdn-client": "^1.0.2",
+        "@youwol/flux-view": "^1.0.3",
         "rxjs": "^6.5.5",
         "marked": "^3.0.0"
     },
@@ -61,7 +61,7 @@ const exportedSymbols = {
 export const setup = {
     name:'@youwol/explorer',
         assetId:'QHlvdXdvbC9leHBsb3Jlcg==',
-    version:'0.2.1',
+    version:'0.2.2',
     shortDescription:"The (files & assets) explorer of YouWol.",
     developerDocumentation:'https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/explorer',
     npmPackage:'https://www.npmjs.com/package/@youwol/explorer',
@@ -70,9 +70,8 @@ export const setup = {
     apiVersion:'02',
     runTimeDependencies,
     externals,
-    exportedSymbols
-}
-
-export function getExportedSymbolName(module:string){
-    return `${exportedSymbols[module].exportedSymbol}_APIv${exportedSymbols[module].apiKey}`
+    exportedSymbols,
+    getDependencySymbolExported: (module:string) => {
+        return `${exportedSymbols[module].exportedSymbol}_APIv${exportedSymbols[module].apiKey}`
+    }
 }

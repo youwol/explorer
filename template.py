@@ -20,12 +20,12 @@ template = Template(
     dependencies=Dependencies(
         runTime=RunTimeDeps(
             load={
-                '@youwol/os-core': '^0.1.0',
-                '@youwol/os-asset': '^0.1.0',
-                '@youwol/os-explorer': '^0.1.0',
-                '@youwol/os-top-banner': '^0.1.0',
-                '@youwol/cdn-client': '^1.0.0',
-                '@youwol/flux-view': '^1.0.0',
+                '@youwol/os-core': '^0.1.1',
+                '@youwol/os-asset': '^0.1.1',
+                '@youwol/os-explorer': '^0.1.1',
+                '@youwol/os-top-banner': '^0.1.1',
+                '@youwol/cdn-client': '^1.0.2',
+                '@youwol/flux-view': '^1.0.3',
                 'rxjs': '^6.5.5',
                 # this is wrong: this dependency should be fetched by @youwol/os-explorer in due time
                 'marked': '^3.0.0'

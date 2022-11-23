@@ -11,7 +11,7 @@ pkg_json = parse_json(folder_path / 'package.json')
 
 load_dependencies = {
     '@youwol/os-core': '^0.1.1',
-    '@youwol/os-asset': '^0.1.1',
+    '@youwol/os-asset': '^0.1.2',
     '@youwol/os-explorer': '^0.1.1',
     '@youwol/os-top-banner': '^0.1.1',
     '@youwol/cdn-client': '^1.0.2',

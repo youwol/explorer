@@ -17,8 +17,6 @@ load_dependencies = {
     '@youwol/cdn-client': '^1.0.2',
     '@youwol/flux-view': '^1.0.3',
     'rxjs': '^6.5.5',
-    # this is wrong: this dependency should be fetched by @youwol/os-explorer in due time
-    'marked': '^3.0.0'
 }
 
 template = Template(

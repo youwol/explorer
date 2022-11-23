@@ -75,8 +75,7 @@
         "@youwol/os-top-banner": "^0.1.1",
         "@youwol/cdn-client": "^1.0.2",
         "@youwol/flux-view": "^1.0.3",
-        "rxjs": "^6.5.5",
-        "marked": "^3.0.0"
+        "rxjs": "^6.5.5"
     },
     "youwol": {
         "cdnDependencies": {
@@ -86,8 +85,7 @@
             "@youwol/os-top-banner": "^0.1.1",
             "@youwol/cdn-client": "^1.0.2",
             "@youwol/flux-view": "^1.0.3",
-            "rxjs": "^6.5.5",
-            "marked": "^3.0.0"
+            "rxjs": "^6.5.5"
         }
     }
 }

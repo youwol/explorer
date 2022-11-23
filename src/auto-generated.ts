@@ -7,8 +7,7 @@ const runTimeDependencies = {
         "@youwol/os-top-banner": "^0.1.1",
         "@youwol/cdn-client": "^1.0.2",
         "@youwol/flux-view": "^1.0.3",
-        "rxjs": "^6.5.5",
-        "marked": "^3.0.0"
+        "rxjs": "^6.5.5"
     },
     "includedInBundle": {}
 }
@@ -20,7 +19,6 @@ const externals = {
     "@youwol/cdn-client": "window['@youwol/cdn-client_APIv1']",
     "@youwol/flux-view": "window['@youwol/flux-view_APIv1']",
     "rxjs": "window['rxjs_APIv6']",
-    "marked": "window['marked_APIv3']",
     "rxjs/operators": "window['rxjs_APIv6']['operators']"
 }
 const exportedSymbols = {
@@ -51,10 +49,6 @@ const exportedSymbols = {
     "rxjs": {
         "apiKey": "6",
         "exportedSymbol": "rxjs"
-    },
-    "marked": {
-        "apiKey": "3",
-        "exportedSymbol": "marked"
     }
 }
 
@@ -68,8 +62,7 @@ const mainEntry : Object = {
         "@youwol/os-top-banner",
         "@youwol/cdn-client",
         "@youwol/flux-view",
-        "rxjs",
-        "marked"
+        "rxjs"
     ]
 }
 

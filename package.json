@@ -1,7 +1,7 @@
 {
     "name": "@youwol/explorer",
     "description": "The (files & assets) explorer of YouWol.",
-    "version": "0.2.3-wip",
+    "version": "0.2.3",
     "author": "greinisch@youwol.com",
     "homepage": "https://github.com/youwol/explorer#README.md",
     "main": "dist/index.html",

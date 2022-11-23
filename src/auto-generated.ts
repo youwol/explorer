@@ -75,7 +75,7 @@ const entries = {
 export const setup = {
     name:'@youwol/explorer',
         assetId:'QHlvdXdvbC9leHBsb3Jlcg==',
-    version:'0.2.3-wip',
+    version:'0.2.3',
     shortDescription:"The (files & assets) explorer of YouWol.",
     developerDocumentation:'https://platform.youwol.com/applications/@youwol/cdn-explorer/latest?package=@youwol/explorer',
     npmPackage:'https://www.npmjs.com/package/@youwol/explorer',
@@ -110,7 +110,7 @@ export const setup = {
         const parameters = installParameters || {}
         const scripts = [
             ...(parameters.scripts || []),
-            `@youwol/explorer#0.2.3-wip~dist/@youwol/explorer/${entry.name}.js`
+            `@youwol/explorer#0.2.3~dist/@youwol/explorer/${entry.name}.js`
         ]
         const modules = [
             ...(parameters.modules || []),

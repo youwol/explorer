@@ -4,5 +4,4 @@
  *
  * @module
  */
-export * from './on-load'
 export * from './app.view'

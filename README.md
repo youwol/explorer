@@ -57,11 +57,11 @@ yarn test-coverage
 
 To start the 'dev-server':
 
-- add `CdnOverride(packageName="@youwol/explorer", port=3008)` in your
-  [YouWol configuration file](https://l.youwol.com/doc/py-youwol/configuration)
-  (in the `dispatches` list).
-- start [py-youwol](https://l.youwol.com/doc/py-youwol)
-- then execute `yarn start`
+-   add `CdnOverride(packageName="@youwol/explorer", port=3008)` in your
+    [YouWol configuration file](https://l.youwol.com/doc/py-youwol/configuration)
+    (in the `dispatches` list).
+-   start [py-youwol](https://l.youwol.com/doc/py-youwol)
+-   then execute `yarn start`
 
 The application can be accessed [here](http://localhost:2000/applications/@youwol/explorer/latest) (providing py-youwol
 running using the default port `2000`).

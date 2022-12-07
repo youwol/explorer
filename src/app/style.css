@@ -1,17 +1,16 @@
-.CodeMirror{
-    height:100% !important;
+.CodeMirror {
+    height: 100% !important;
 }
 
-
-.fv-tree-arianeLine{
-    display: none
+.fv-tree-arianeLine {
+    display: none;
 }
 
-.fv-tree-arianeLine:hover{
-    display: block
-}
-
-.fv-tree-header:hover ~ .fv-tree-arianeLine{
+.fv-tree-arianeLine:hover {
     display: block;
-    opacity:0.1
+}
+
+.fv-tree-header:hover ~ .fv-tree-arianeLine {
+    display: block;
+    opacity: 0.1;
 }

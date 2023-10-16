@@ -1243,7 +1243,7 @@
   resolved "https://registry.yarnpkg.com/@xtuc/long/-/long-4.2.2.tgz#d291c6a4e97989b5c61d9acf396ae4fe133a718d"
   integrity sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==
 
-"@youwol/cdn-client@^1.0.10", "@youwol/cdn-client@^1.0.2":
+"@youwol/cdn-client@^1.0.2":
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/@youwol/cdn-client/-/cdn-client-1.0.10.tgz#2e240601625f3fe6d95a69f951c35cbd673f21ff"
   integrity sha512-tUYFztmQ6kztkm1HBl7Qq0Fxbt5iuLuc9j+x9FXhti79UKN8121tBhLdG49hnlQcIIPw54UI4GOK2ggrDQcCWQ==
@@ -1322,13 +1322,6 @@
     "@youwol/flux-view" "^1.0.3"
     rxjs "^6.5.5"
 
-"@youwol/http-clients@^1.0.2":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@youwol/http-clients/-/http-clients-1.0.4.tgz#0171f24724abd8f1224413e3c44fdf7b3f8c75f0"
-  integrity sha512-kbT0BwwIoz1bNt+EAJie11Qx+8jxx20aWStrWJzLYGioGpV+pwOd3qcbYXvX36qGeGIA5q3/WwZYzPLHEU1Neg==
-  dependencies:
-    rxjs "^6.5.5"
-
 "@youwol/http-clients@^2.0.1", "@youwol/http-clients@^2.0.5":
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/@youwol/http-clients/-/http-clients-2.0.5.tgz#5286a766839579be8f3e38e5c294ec6c1e2db530"
@@ -1355,22 +1348,35 @@
     jest-junit "^15.0.0"
     ts-jest "^29.0.5"
 
-"@youwol/os-asset@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@youwol/os-asset/-/os-asset-0.1.2.tgz#221d8347073157890612721b31ca4c0ca1cd9fa7"
-  integrity sha512-Iz7+QNtheeh5hsanApxrePyGO0vMf3FMca3znBK4ixCcvD926ErM04WECOROOGh/kfRVuNWFwymIQD1O18XRCQ==
+"@youwol/os-asset@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@youwol/os-asset/-/os-asset-0.1.3.tgz#9a2d52cd8a9c4f12f86b410b2f61f9f199378a52"
+  integrity sha512-gBb07Uuh8Oq9tU7cxvysDw2/Wjb5VEgBZm64XG41MsTYYpeuYgbhu9+jG1RBTG8TxdKJf+6e5ROs8VGEpSbfeA==
   dependencies:
-    "@youwol/cdn-client" "^1.0.2"
+    "@youwol/cdn-client" "^2.1.0"
     "@youwol/flux-view" "^1.0.3"
     "@youwol/fv-button" "^0.1.1"
     "@youwol/fv-input" "^0.2.1"
     "@youwol/fv-tabs" "^0.2.1"
-    "@youwol/http-clients" "^1.0.2"
-    "@youwol/os-core" "^0.1.1"
+    "@youwol/http-clients" "^2.0.5"
+    "@youwol/http-primitives" "^0.1.2"
+    "@youwol/os-core" "^0.1.13"
     marked "^4.2.3"
     rxjs "^6.5.5"
 
-"@youwol/os-core@^0.1.1", "@youwol/os-core@^0.1.6":
+"@youwol/os-core@^0.1.12", "@youwol/os-core@^0.1.13":
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/@youwol/os-core/-/os-core-0.1.13.tgz#8aa8b98bc0b824d5644b86800ad8fb34b52e956b"
+  integrity sha512-r6iFmyS+Xk0BCZ96Rd4+bQPiAJ4qJqR4tMBEfkAw794KTiF+CO16YfPxpkCVXDWEqBWflij6uPiFD/x+POj26g==
+  dependencies:
+    "@youwol/cdn-client" "^2.1.0"
+    "@youwol/flux-view" "^1.0.3"
+    "@youwol/http-clients" "^2.0.1"
+    "@youwol/http-primitives" "^0.1.2"
+    rxjs "^6.5.5"
+    uuid "^8.3.2"
+
+"@youwol/os-core@^0.1.6":
   version "0.1.12"
   resolved "https://registry.yarnpkg.com/@youwol/os-core/-/os-core-0.1.12.tgz#5d1206c980f1cc6c4299aa9d669a3e9f6ae0c558"
   integrity sha512-DkzIFP1qcg2XHv3912VL6c7zPvcxC0hBxTnqIx0+ms7Hqom6PYHb/09IKVsafuqVFgIGw+P4yg2cmuCxRZKT9Q==
@@ -1382,12 +1388,12 @@
     rxjs "^6.5.5"
     uuid "^8.3.2"
 
-"@youwol/os-explorer@^0.1.1":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@youwol/os-explorer/-/os-explorer-0.1.3.tgz#8754d56daedd6829e33f3475d85bb1c6a1d7eaf6"
-  integrity sha512-SFr0eXpnMENZC5PgvL28oP68pcYcU/HStNwE3c8zJ3ID1M2m0F+6tAeO5hOleg1ywHlse8mOjXylcCU9Y0Dc+Q==
+"@youwol/os-explorer@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@youwol/os-explorer/-/os-explorer-0.1.4.tgz#876154ac4bc74582989298f422e9b43421ce6d72"
+  integrity sha512-94vRnO81YnpRYhPA/ru+/fhZNySwl6xtaZ7qQ5GQto7eRP2j0siXn2mh1T64dKePG92CauI58mcpZC2oGwtbrg==
   dependencies:
-    "@youwol/cdn-client" "^1.0.10"
+    "@youwol/cdn-client" "^2.1.0"
     "@youwol/flux-view" "^1.1.0"
     "@youwol/fv-context-menu" "^0.1.1"
     "@youwol/fv-input" "^0.2.1"
@@ -1395,12 +1401,12 @@
     "@youwol/fv-tree" "^0.2.3"
     "@youwol/http-clients" "^2.0.5"
     "@youwol/http-primitives" "^0.1.2"
-    "@youwol/os-core" "^0.1.6"
+    "@youwol/os-core" "^0.1.13"
     lodash "^4.17.15"
     rxjs "^6.5.5"
     uuid "^8.3.2"
 
-"@youwol/os-top-banner@^0.1.1":
+"@youwol/os-top-banner@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@youwol/os-top-banner/-/os-top-banner-0.1.2.tgz#f9e4789b95fcdd344defcb31fa5d3e7ba25c74d5"
   integrity sha512-eYfMkXaxZ3V1UUWbJGK/ADlcvcPT2OhOlUpZvGozWN+OUTxzPTJ2H0OHpbOkw1gK01u6qHVjQc5nYq8V0E/iwA==

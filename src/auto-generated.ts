@@ -5,7 +5,7 @@ const runTimeDependencies = {
         "@youwol/os-asset": "^0.1.2",
         "@youwol/os-explorer": "^0.1.1",
         "@youwol/os-top-banner": "^0.1.1",
-        "@youwol/cdn-client": "^1.0.2",
+        "@youwol/cdn-client": "^2.1.0",
         "@youwol/flux-view": "^1.0.3",
         "rxjs": "^6.5.5"
     },
@@ -16,7 +16,7 @@ const externals = {
     "@youwol/os-asset": "window['@youwol/os-asset_APIv01']",
     "@youwol/os-explorer": "window['@youwol/os-explorer_APIv01']",
     "@youwol/os-top-banner": "window['@youwol/os-top-banner_APIv01']",
-    "@youwol/cdn-client": "window['@youwol/cdn-client_APIv1']",
+    "@youwol/cdn-client": "window['@youwol/cdn-client_APIv2']",
     "@youwol/flux-view": "window['@youwol/flux-view_APIv1']",
     "rxjs": "window['rxjs_APIv6']",
     "rxjs/operators": "window['rxjs_APIv6']['operators']"
@@ -39,7 +39,7 @@ const exportedSymbols = {
         "exportedSymbol": "@youwol/os-top-banner"
     },
     "@youwol/cdn-client": {
-        "apiKey": "1",
+        "apiKey": "2",
         "exportedSymbol": "@youwol/cdn-client"
     },
     "@youwol/flux-view": {

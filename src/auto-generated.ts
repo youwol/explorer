@@ -1,34 +1,42 @@
 
 const runTimeDependencies = {
     "externals": {
-        "@youwol/os-core": "^0.1.12",
-        "@youwol/os-asset": "^0.1.3",
-        "@youwol/os-explorer": "^0.1.4",
-        "@youwol/os-top-banner": "^0.1.2",
         "@youwol/cdn-client": "^2.1.0",
         "@youwol/flux-view": "^1.0.3",
+        "@youwol/os-asset": "^0.1.3",
+        "@youwol/os-core": "^0.1.12",
+        "@youwol/os-explorer": "^0.1.4",
+        "@youwol/os-top-banner": "^0.1.2",
         "rxjs": "^6.5.5"
     },
     "includedInBundle": {}
 }
 const externals = {
-    "@youwol/os-core": "window['@youwol/os-core_APIv01']",
-    "@youwol/os-asset": "window['@youwol/os-asset_APIv01']",
-    "@youwol/os-explorer": "window['@youwol/os-explorer_APIv01']",
-    "@youwol/os-top-banner": "window['@youwol/os-top-banner_APIv01']",
     "@youwol/cdn-client": "window['@youwol/cdn-client_APIv2']",
     "@youwol/flux-view": "window['@youwol/flux-view_APIv1']",
+    "@youwol/os-asset": "window['@youwol/os-asset_APIv01']",
+    "@youwol/os-core": "window['@youwol/os-core_APIv01']",
+    "@youwol/os-explorer": "window['@youwol/os-explorer_APIv01']",
+    "@youwol/os-top-banner": "window['@youwol/os-top-banner_APIv01']",
     "rxjs": "window['rxjs_APIv6']",
     "rxjs/operators": "window['rxjs_APIv6']['operators']"
 }
 const exportedSymbols = {
-    "@youwol/os-core": {
-        "apiKey": "01",
-        "exportedSymbol": "@youwol/os-core"
+    "@youwol/cdn-client": {
+        "apiKey": "2",
+        "exportedSymbol": "@youwol/cdn-client"
+    },
+    "@youwol/flux-view": {
+        "apiKey": "1",
+        "exportedSymbol": "@youwol/flux-view"
     },
     "@youwol/os-asset": {
         "apiKey": "01",
         "exportedSymbol": "@youwol/os-asset"
+    },
+    "@youwol/os-core": {
+        "apiKey": "01",
+        "exportedSymbol": "@youwol/os-core"
     },
     "@youwol/os-explorer": {
         "apiKey": "01",
@@ -37,14 +45,6 @@ const exportedSymbols = {
     "@youwol/os-top-banner": {
         "apiKey": "01",
         "exportedSymbol": "@youwol/os-top-banner"
-    },
-    "@youwol/cdn-client": {
-        "apiKey": "2",
-        "exportedSymbol": "@youwol/cdn-client"
-    },
-    "@youwol/flux-view": {
-        "apiKey": "1",
-        "exportedSymbol": "@youwol/flux-view"
     },
     "rxjs": {
         "apiKey": "6",
